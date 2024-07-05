@@ -20,7 +20,9 @@ from utils.sh_utils import RGB2SH
 from simple_knn._C import distCUDA2
 from utils.graphics_utils import BasicPointCloud
 from utils.general_utils import strip_symmetric, build_scaling_rotation
-
+from scene.linear_layer import LinearLayer
+from scene.gaussian_conv import NeuralRenderer, decoder3
+from scene.style_transfer import MulLayer,MulLayerv1
 class GaussianModel:
 
     def setup_functions(self):
@@ -219,6 +221,75 @@ class GaussianModel:
         self._opacity = nn.Parameter(opacities.requires_grad_(True))
         self.max_radii2D = torch.zeros((self.get_xyz.shape[0]), device="cuda")
 
+
+    def training_setup_style_feature(self, training_args, app_encoder, args, photorealistic=False, config=None):
+        app_channel_dim=32
+        
+
+        self.xyz_gradient_accum_abs = torch.zeros((self.get_xyz.shape[0], 1), device="cuda")
+        self.xyz_gradient_accum_abs_max = torch.zeros((self.get_xyz.shape[0], 1), device="cuda")
+        self.denom = torch.zeros((self.get_xyz.shape[0], 1), device="cuda")
+        
+        
+        self.percent_dense = training_args.percent_dense
+        self.xyz_gradient_accum = torch.zeros((self.get_xyz.shape[0], 1), device="cuda")
+        self.denom = torch.zeros((self.get_xyz.shape[0], 1), device="cuda")
+        _vgg_features = torch.randn((self.get_xyz.shape[0], 32), device="cuda").requires_grad_(True)
+        self._vgg_features = nn.Parameter(_vgg_features)
+        self.feature_linear = LinearLayer(inChanel=32, out_dim=app_channel_dim, feape=0).cuda()
+        self.decoder=NeuralRenderer(feat_nc=app_channel_dim, out_dim=3).cuda() 
+        self.decoder_style=decoder3(feat_nc=app_channel_dim, out_dim=3).cuda() 
+        # if decoder_path:
+        #     print('Init decoder from {}'.format(decoder_path))
+        #     (_xyz,
+        #     _scaling,
+        #     _rotation,
+        #     _opacity,
+        #     final_vgg_features,
+        #     decoder_state_dict) = torch.load(decoder_path)
+        #     self.decoder.load_state_dict(decoder_state_dict)
+
+        # init style transfer module
+        self.style_transfer = MulLayerv1(in_channel=app_channel_dim).cuda()
+        self.app_encoder=app_encoder.cuda()
+        
+        
+        
+        l = [
+            {'params': [self._xyz], 'lr': training_args.position_lr_init * self.spatial_lr_scale, "name": "xyz"},
+            {'params': [self._opacity], 'lr': training_args.opacity_lr, "name": "opacity"},
+            {'params': [self._scaling], 'lr': training_args.scaling_lr, "name": "scaling"},
+            {'params': [self._rotation], 'lr': training_args.rotation_lr, "name": "rotation"},
+            {'params': [self._vgg_features], 'lr': 0.001, "name": "vgg_features"},
+            {'params': [self._features_dc], 'lr': training_args.feature_lr, "name": "f_dc"},
+            {'params': [self._features_rest], 'lr': training_args.feature_lr / 20.0, "name": "f_rest"},
+            {'params': self.feature_linear.parameters(), 'lr': 5e-4, "name": "feature_linear"},
+            {'params': self.decoder.parameters(), 'lr': 5e-4, "name": "decoder"},
+            {'params': self.style_transfer.parameters(), 'lr': 5e-4, "name": "style_transfer"},
+            {'params': self.app_encoder.parameters(), 'lr': 5e-4, "name": "app_encoder"},
+            {'params': self.decoder_style.parameters(), 'lr': 5e-4, "name": "decoder_style"}
+            
+        ]
+        if args.mask:
+            if args.masktype == "context":
+                from scene.lightweight_seg import Context_Guided_Network
+                self.implicit_mask = Context_Guided_Network(classes= 1, M= 2, N= 2, input_channel=3).cuda()
+                
+            elif args.masktype == "maskrcnn": 
+                # from torchvision.models.segmentation import deeplabv3_resnet50 as deep_m
+                from torchvision.models.detection import maskrcnn_resnet50_fpn
+                # self.implicit_mask = Context_Guided_Network(classes= 1, M= 2, N= 2, input_channel=3)
+                self.implicit_mask=maskrcnn_resnet50_fpn(pretrained=True).cuda()
+                self.implicit_mask.eval()
+                for param in self.implicit_mask.parameters():##cnn after avgpool should train?
+                                param.requires_grad = False
+            l.append({'params': self.implicit_mask.parameters(), 'lr': 5e-4, "name": "segment_net"})
+        self.optimizer = torch.optim.Adam(l, eps=1e-15)
+        self.xyz_scheduler_args = get_expon_lr_func(lr_init=training_args.position_lr_init*self.spatial_lr_scale,
+                                                    lr_final=training_args.position_lr_final*self.spatial_lr_scale,
+                                                    lr_delay_mult=training_args.position_lr_delay_mult,
+                                                    max_steps=training_args.position_lr_max_steps)
+
     def training_setup(self, training_args):
         self.percent_dense = training_args.percent_dense
         self.xyz_gradient_accum = torch.zeros((self.get_xyz.shape[0], 1), device="cuda")
@@ -390,7 +461,11 @@ class GaussianModel:
 
     def _prune_optimizer(self, mask):
         optimizable_tensors = {}
+        
         for group in self.optimizer.param_groups:
+            
+            if group["name"] in ["feature_linear","decoder","style_transfer","app_encoder","segment_net", "decoder_style"]:continue
+
             stored_state = self.optimizer.state.get(group['params'][0], None)
             if stored_state is not None:
                 stored_state["exp_avg"] = stored_state["exp_avg"][mask]
@@ -416,6 +491,7 @@ class GaussianModel:
         self._opacity = optimizable_tensors["opacity"]
         self._scaling = optimizable_tensors["scaling"]
         self._rotation = optimizable_tensors["rotation"]
+        self._vgg_features=optimizable_tensors["vgg_features"]
 
         self.xyz_gradient_accum = self.xyz_gradient_accum[valid_points_mask]
         self.xyz_gradient_accum_abs = self.xyz_gradient_accum_abs[valid_points_mask]
@@ -426,6 +502,7 @@ class GaussianModel:
     def cat_tensors_to_optimizer(self, tensors_dict):
         optimizable_tensors = {}
         for group in self.optimizer.param_groups:
+            if group["name"] in ["feature_linear","decoder","style_transfer","app_encoder","segment_net", "decoder_style"]:continue
             assert len(group["params"]) == 1
             extension_tensor = tensors_dict[group["name"]]
             stored_state = self.optimizer.state.get(group['params'][0], None)
@@ -445,13 +522,14 @@ class GaussianModel:
 
         return optimizable_tensors
 
-    def densification_postfix(self, new_xyz, new_features_dc, new_features_rest, new_opacities, new_scaling, new_rotation):
+    def densification_postfix(self, new_xyz, new_features_dc, new_features_rest, new_opacities, new_scaling, new_rotation, new_vgg):
         d = {"xyz": new_xyz,
         "f_dc": new_features_dc,
         "f_rest": new_features_rest,
         "opacity": new_opacities,
         "scaling" : new_scaling,
-        "rotation" : new_rotation}
+        "rotation" : new_rotation,
+        "vgg_features": new_vgg}
 
         optimizable_tensors = self.cat_tensors_to_optimizer(d)
         self._xyz = optimizable_tensors["xyz"]
@@ -460,6 +538,7 @@ class GaussianModel:
         self._opacity = optimizable_tensors["opacity"]
         self._scaling = optimizable_tensors["scaling"]
         self._rotation = optimizable_tensors["rotation"]
+        self._vgg_features = optimizable_tensors["vgg_features"]
 
         #TODO Maybe we don't need to reset the value, it's better to use moving average instead of reset the value
         self.xyz_gradient_accum = torch.zeros((self.get_xyz.shape[0], 1), device="cuda")
@@ -491,8 +570,8 @@ class GaussianModel:
         new_features_dc = self._features_dc[selected_pts_mask].repeat(N,1,1)
         new_features_rest = self._features_rest[selected_pts_mask].repeat(N,1,1)
         new_opacity = self._opacity[selected_pts_mask].repeat(N,1)
-
-        self.densification_postfix(new_xyz, new_features_dc, new_features_rest, new_opacity, new_scaling, new_rotation)
+        new_vgg = self._vgg_features[selected_pts_mask].repeat(N,1)
+        self.densification_postfix(new_xyz, new_features_dc, new_features_rest, new_opacity, new_scaling, new_rotation, new_vgg)
 
         prune_filter = torch.cat((selected_pts_mask, torch.zeros(N * selected_pts_mask.sum(), device="cuda", dtype=bool)))
         self.prune_points(prune_filter)
@@ -511,8 +590,9 @@ class GaussianModel:
         new_opacities = self._opacity[selected_pts_mask]
         new_scaling = self._scaling[selected_pts_mask]
         new_rotation = self._rotation[selected_pts_mask]
+        new_vgg = self._vgg_features[selected_pts_mask]
 
-        self.densification_postfix(new_xyz, new_features_dc, new_features_rest, new_opacities, new_scaling, new_rotation)
+        self.densification_postfix(new_xyz, new_features_dc, new_features_rest, new_opacities, new_scaling, new_rotation, new_vgg)
 
     def densify_and_prune(self, max_grad, min_opacity, extent, max_screen_size):
         grads = self.xyz_gradient_accum / self.denom

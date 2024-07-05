@@ -62,3 +62,53 @@ def _ssim(img1, img2, window, window_size, channel, size_average=True):
     else:
         return ssim_map.mean(1).mean(1).mean(1)
 
+
+def calc_mean_std(x, eps=1e-8):
+        """
+        calculating channel-wise instance mean and standard variance
+        x: shape of (N,C,*)
+        """
+        mean = torch.mean(x.flatten(2), dim=-1, keepdim=True) # size of (N, C, 1)
+        std = torch.std(x.flatten(2), dim=-1, keepdim=True) + eps # size of (N, C, 1)
+        
+        return mean, std
+
+def cal_adain_style_loss(x, y):
+    """
+    style loss in one layer
+
+    Args:
+        x, y: feature maps of size [N, C, H, W]
+    """
+    x_mean, x_std = calc_mean_std(x)
+    y_mean, y_std = calc_mean_std(y)
+
+    return nn.functional.mse_loss(x_mean, y_mean) \
+         + nn.functional.mse_loss(x_std, y_std)
+
+def cal_mse_content_loss(x, y):
+    return nn.functional.mse_loss(x, y)
+
+
+def mask_regularize(mask, size_delta, digit_delta):
+        focus_epsilon = 0.02
+
+        # # l2 regularize
+        loss_focus_size = torch.pow(mask, 2)
+        loss_focus_size = torch.mean(loss_focus_size) * size_delta
+
+        loss_focus_digit = 1 / ((mask - 0.5)**2 + focus_epsilon)
+        loss_focus_digit = torch.mean(loss_focus_digit) * digit_delta
+
+        return loss_focus_size, loss_focus_digit
+    
+class ExponentialAnnealingWeight():
+    def __init__(self, max, min, k):
+        super().__init__()
+        # 5e-2
+        self.max = max
+        self.min = min
+        self.k = k
+
+    def getWeight(self, Tcur):
+        return max(self.min, self.max * math.exp(-Tcur*self.k))

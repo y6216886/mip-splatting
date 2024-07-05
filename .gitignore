@@ -4,6 +4,7 @@ output
 build
 diff_rasterization/diff_rast.egg-info
 diff_rasterization/dist
+submodules
 tensorboard_3d
 screenshots
 nerf_synthetic

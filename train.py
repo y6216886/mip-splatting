@@ -109,8 +109,8 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
         viewpoint_cam = viewpoint_stack.pop(randint(0, len(viewpoint_stack)-1))
         
         # Pick a random high resolution camera
-        if random.random() < 0.3 and dataset.sample_more_highres:
-            viewpoint_cam = trainCameras[highresolution_index[randint(0, len(highresolution_index)-1)]]
+        # if random.random() < 0.3 and dataset.sample_more_highres:
+        #     viewpoint_cam = trainCameras[highresolution_index[randint(0, len(highresolution_index)-1)]]
             
         # Render
         if (iteration - 1) == debug_from:
