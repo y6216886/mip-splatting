@@ -1,0 +1,26 @@
+Output folder: /root/young/code/mip-splatting/output/brandenburggate
+Tensorboard not available: not logging progress
+
+
+
+
+Reading camera 856/1363
+[34m[1mwandb[39m[22m: Ctrl + C detected. Stopping sweep.
+Traceback (most recent call last):
+  File "/root/young/code/mip-splatting/train-wildfeature.py", line 64, in training
+    scene = Scene(dataset, gaussians, resolution_scales=[scale])
+  File "/root/young/code/mip-splatting/scene/__init__.py", line 45, in __init__
+    scene_info = sceneLoadTypeCallbacks["Colmap"](args.source_path, args.images, args.eval)
+  File "/root/young/code/mip-splatting/scene/dataset_readers.py", line 148, in readColmapSceneInfo
+    cam_infos_unsorted = readColmapCameras(cam_extrinsics=cam_extrinsics, cam_intrinsics=cam_intrinsics, images_folder=os.path.join(path, reading_dir))
+  File "/root/young/code/mip-splatting/scene/dataset_readers.py", line 103, in readColmapCameras
+    image = copy.deepcopy(image)
+  File "/root/miniconda3/envs/mip-splatting/lib/python3.8/copy.py", line 161, in deepcopy
+    rv = reductor(4)
+  File "/root/miniconda3/envs/mip-splatting/lib/python3.8/site-packages/PIL/Image.py", line 712, in __getstate__
+    im_data = self.tobytes()  # load image first
+  File "/root/miniconda3/envs/mip-splatting/lib/python3.8/site-packages/PIL/Image.py", line 755, in tobytes
+    self.load()
+  File "/root/miniconda3/envs/mip-splatting/lib/python3.8/site-packages/PIL/ImageFile.py", line 291, in load
+    n, err_code = decoder.decode(b)
+Exception

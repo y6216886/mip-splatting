@@ -1,0 +1,42 @@
+wandb_version: 1
+
+app_encoder_lr:
+  value: 0.0005
+app_reg:
+  value: 0.01
+apploss_pair_ratio:
+  value: 0.01
+apploss_random_ratio:
+  value: 0.1
+decoder_lr:
+  value: 0.005
+densification_interval:
+  value: 3000
+densify_from_iter:
+  value: 3000
+densify_until_iter:
+  value: 15000
+feature_linear_lr:
+  value: 0.005
+l1_weight:
+  value: 10
+lambda_dssim:
+  value: 0.6
+maskrs_max:
+  value: 200
+prune_only_end_step:
+  value: 15000
+prune_only_interval:
+  value: 1000
+prune_only_start_step:
+  value: 1000
+prune_opacity:
+  value: 0.0005
+prune_size_threshold:
+  value: 0.2
+segnet_lr:
+  value: 0.0005
+ssim_weight:
+  value: 1
+style_trans_lr:
+  value: 1.0e-05

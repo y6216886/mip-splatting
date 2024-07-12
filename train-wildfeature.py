@@ -29,6 +29,8 @@ from utils.image_utils import psnr
 from argparse import ArgumentParser, Namespace
 from scene.VGG import VGGEncoder, normalize_vgg
 from arguments import ModelParams, PipelineParams, OptimizationParams
+import wandb
+from eval_metric import calculate_metrics
 try:
     from torch.utils.tensorboard import SummaryWriter
     TENSORBOARD_FOUND = True
@@ -50,12 +52,17 @@ def create_offset_gt(image, offset):
     image = torch.nn.functional.grid_sample(image[None], id_coords[None], align_corners=True, padding_mode="border")[0]
     return image
 
-def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoint_iterations, checkpoint, debug_from):
+def training():
+  with wandb.init():
+        # wandb.run.log_code(".")
+    config=wandb.config
+    dataset, opt, pipe, testing_iterations, saving_iterations, checkpoint_iterations, checkpoint, debug_from=opt_g
+    dataset.kernel_size=config.kernel_size
     first_iter = 0
-    scale=4
+    scale=2
     tb_writer = prepare_output_and_logger(dataset)
     gaussians = GaussianModel(dataset.sh_degree)
-    scene = Scene(dataset, gaussians)
+    scene = Scene(dataset, gaussians, resolution_scales=[scale])
     # gaussians.training_setup(opt)
     vgg_encoder = VGGEncoder().cuda()
     gaussians.training_setup_style_feature(opt, vgg_encoder, args)
@@ -78,7 +85,8 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
     len_cam=len(viewpoint_stack)
     embedding_a_list = [None] * (len(viewpoint_stack)+1)
     print("saving all gt_app_embdeeing to embedding list")
-    for viewpoint_cam in viewpoint_stack:
+    # for viewpoint_cam in viewpoint_stack:
+    for viewpoint_cam in tqdm(viewpoint_stack, desc="Processing viewpoint_stack"):
                 id=viewpoint_cam.uid
                 print("uid",id)
                 gt_image = viewpoint_cam.original_image.unsqueeze(0).cuda()
@@ -168,8 +176,12 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
         else:
             image_=image
             gt_image_=gt_image
+        loss_dict={}
         Ll1 = l1_loss(image_, gt_image_)
-        loss = (1.0 - opt.lambda_dssim)* Ll1 +  opt.lambda_dssim*(1.0 - ssim(image_, gt_image_))
+        ssim_loss=1.0 - ssim(image_, gt_image_)
+        loss = (1.0 - config.lambda_dssim)* Ll1 +  config.lambda_dssim*ssim_loss
+        loss_dict["Ll1"]=Ll1.item()
+        loss_dict["ssimloss"]=ssim_loss.item()
         apploss=0
         if args.appearance:
                 # breakpoint()
@@ -177,7 +189,9 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                 # pred_app_feature=pred_app_feature.relu3_1
                 # apploss+=F.mse_loss(pred_app_feature.relu1_1,gt_image_features_.relu1_1) 
                 # apploss+=F.mse_loss(pred_app_feature.relu2_1,gt_image_features_.relu2_1) 
-                apploss+=F.mse_loss(pred_app_feature.relu3_1,gt_image_features) 
+                apploss_pair=F.mse_loss(pred_app_feature.relu3_1,gt_image_features)
+                apploss+=apploss_pair*config.apploss_pair_ratio
+                loss_dict["apploss_pair"]=apploss_pair.item() 
                 # apploss+=F.mse_loss(pred_app_feature.relu4_1,gt_image_features_.relu4_1) 
                 # regu_app=_l2_regularize(pred_app_feature)
         if args.encode_a_random:
@@ -191,11 +205,11 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
             )
                 image_random = gaussians.decoder(tranfered_features_random)
                 pred_app_feature_random = gaussians.app_encoder(normalize_vgg(image_random))
-                apploss+=F.mse_loss(pred_app_feature_random.relu3_1, appearance_embeding_random)
-        loss += apploss*1 #+ regu_app*config.app_reg
-        # loss_dict["apploss"]=apploss.item()
-                # loss_dict["regu_app"]=regu_app.item()
-
+                apploss_random=F.mse_loss(pred_app_feature_random.relu3_1, appearance_embeding_random)
+                apploss+=apploss_random*config.apploss_random_ratio
+                loss_dict["apploss_random"]=apploss_random.item()
+        loss += apploss
+        loss_dict["loss"]=loss.item()
         
         loss.backward()
 
@@ -217,6 +231,8 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
             # Progress bar
             ema_loss_for_log = 0.4 * loss.item() + 0.6 * ema_loss_for_log
             if iteration % 10 == 0:
+                for k,v in loss_dict.items():
+                        if args.wandb:wandb.log({k: v}, step=iteration)
                 progress_bar.set_postfix({"Loss": f"{ema_loss_for_log:.{7}f}"})
                 progress_bar.update(10)
             if iteration == opt.iterations:
@@ -257,6 +273,9 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
             if (iteration in checkpoint_iterations):
                 print("\n[ITER {}] Saving Checkpoint".format(iteration))
                 torch.save((gaussians.capture(), iteration), scene.model_path + "/chkpnt" + str(iteration) + ".pth")
+            if iteration == opt.iterations:
+                calculate_metrics(args.model_path_args, args.wandb)
+                
 
 def prepare_output_and_logger(args):    
     if not args.model_path:
@@ -280,42 +299,7 @@ def prepare_output_and_logger(args):
         print("Tensorboard not available: not logging progress")
     return tb_writer
 
-# def training_report(tb_writer, iteration, Ll1, loss, l1_loss, elapsed, testing_iterations, scene : Scene, renderFunc, renderArgs):
-#     if tb_writer:
-#         tb_writer.add_scalar('train_loss_patches/l1_loss', Ll1.item(), iteration)
-#         tb_writer.add_scalar('train_loss_patches/total_loss', loss.item(), iteration)
-#         tb_writer.add_scalar('iter_time', elapsed, iteration)
 
-#     # Report test and samples of training set
-#     if iteration in testing_iterations:
-#         torch.cuda.empty_cache()
-#         validation_configs = ({'name': 'test', 'cameras' : scene.getTestCameras()}, 
-#                               {'name': 'train', 'cameras' : [scene.getTrainCameras()[idx % len(scene.getTrainCameras())] for idx in range(5, 30, 5)]})
-
-#         for config in validation_configs:
-#             if config['cameras'] and len(config['cameras']) > 0:
-#                 l1_test = 0.0
-#                 psnr_test = 0.0
-#                 for idx, viewpoint in enumerate(config['cameras']):
-#                     image = torch.clamp(renderFunc(viewpoint, scene.gaussians, *renderArgs)["render"], 0.0, 1.0)
-#                     gt_image = torch.clamp(viewpoint.original_image.to("cuda"), 0.0, 1.0)
-#                     if tb_writer and (idx < 5):
-#                         tb_writer.add_images(config['name'] + "_view_{}/render".format(viewpoint.image_name), image[None], global_step=iteration)
-#                         if iteration == testing_iterations[0]:
-#                             tb_writer.add_images(config['name'] + "_view_{}/ground_truth".format(viewpoint.image_name), gt_image[None], global_step=iteration)
-#                     l1_test += l1_loss(image, gt_image).mean().double()
-#                     psnr_test += psnr(image, gt_image).mean().double()
-#                 psnr_test /= len(config['cameras'])
-#                 l1_test /= len(config['cameras'])          
-#                 print("\n[ITER {}] Evaluating {}: L1 {} PSNR {}".format(iteration, config['name'], l1_test, psnr_test))
-#                 if tb_writer:
-#                     tb_writer.add_scalar(config['name'] + '/loss_viewpoint - l1_loss', l1_test, iteration)
-#                     tb_writer.add_scalar(config['name'] + '/loss_viewpoint - psnr', psnr_test, iteration)
-
-#         if tb_writer:
-#             tb_writer.add_histogram("scene/opacity_histogram", scene.gaussians.get_opacity, iteration)
-#             tb_writer.add_scalar('total_points', scene.gaussians.get_xyz.shape[0], iteration)
-#         torch.cuda.empty_cache()
 
 
 import imageio
@@ -328,18 +312,17 @@ def training_report(wandb_writer, iteration, Ll1, loss, l1_loss, elapsed, testin
         # Report test and samples of training set
     if iteration in testing_iterations:
         torch.cuda.empty_cache()
-        validation_configs = ({'name': 'test', 'cameras' : scene.getTestCameras()}, 
+        validation_configs = ({'name': 'test', 'cameras' : scene.getTestCameras(scale)}, 
                               {'name': 'train', 'cameras' : [scene.getTrainCameras(scale)[idx % len(scene.getTrainCameras(scale))] for idx in range(5, 30, 5)]})
 
-        for config in validation_configs:
-            if config['cameras'] and len(config['cameras']) > 0:
+        for config_ in validation_configs:
+            if config_['cameras'] and len(config_['cameras']) > 0:
                 l1_test = 0.0
                 psnr_test = 0.0
-                for idx, viewpoint in enumerate(config['cameras']):
+                for idx, viewpoint in enumerate(config_['cameras']):
                     gt_image=viewpoint.original_image.to("cuda")
                     gt_image_features_ = app_encoder(normalize_vgg(gt_image.unsqueeze(0)))
                     gt_image_features=gt_image_features_.relu3_1
-                    # final_vgg_features=gaussians.feature_linear.forward_directly_on_point(gaussians._vgg_features)
 
                     
 
@@ -353,25 +336,22 @@ def training_report(wandb_writer, iteration, Ll1, loss, l1_loss, elapsed, testin
                     
                     image = torch.clamp(image, 0.0, 1.0)
                     gt_image = torch.clamp(gt_image, 0.0, 1.0)
-                    if config["name"]=="test":
+                    if config_["name"]=="test":
                         img_pred = image.squeeze(0).detach().cpu().numpy().transpose(1, 2, 0)
                         img_pred_ = (img_pred*255).astype(np.uint8)
                         gt_image_np = gt_image.squeeze(0).detach().cpu().numpy().transpose(1, 2, 0)
                         gt_image_np = (gt_image_np*255).astype(np.uint8)
                         imageio.imwrite(os.path.join(args.model_path_args, "pred", f'{idx:03d}.png'), img_pred_)
                         imageio.imwrite(os.path.join(args.model_path_args, "gt", f'{idx:03d}.png'), gt_image_np)
-                    # if tb_writer and (idx < 5):
-                    #     tb_writer.add_images(config['name'] + "_view_{}/render".format(viewpoint.image_name), image[None], global_step=iteration)
-                    #     if iteration == testing_iterations[0]:
-                    #         tb_writer.add_images(config['name'] + "_view_{}/ground_truth".format(viewpoint.image_name), gt_image[None], global_step=iteration)
-                    #save image and gt_image
+
                     
                     l1_test += l1_loss(image, gt_image).mean().double()
                     psnr_test += psnr(image, gt_image).mean().double()
-                psnr_test /= len(config['cameras'])
-                l1_test /= len(config['cameras'])          
-                print("\n[ITER {}] Evaluating {}: L1 {} PSNR {}".format(iteration, config['name'], l1_test, psnr_test))
-
+                psnr_test /= len(config_['cameras'])
+                l1_test /= len(config_['cameras'])          
+                print("\n[ITER {}] Evaluating {}: L1 {} PSNR {}".format(iteration, config_['name'], l1_test, psnr_test))
+        if args.wandb:
+            wandb.log({'total_points': scene.gaussians.get_xyz.shape[0]}, iteration)
         torch.cuda.empty_cache()
 if __name__ == "__main__":
     # Set up command line argument parser
@@ -395,21 +375,107 @@ if __name__ == "__main__":
     parser.add_argument('--appearance', action='store_true', default=False)
     parser.add_argument("--model_path_args", type=str, default="output/test1")
     parser.add_argument('--encode_a_random', action='store_true', default=True)
+    parser.add_argument('--wandb', action='store_true', default=True)
     
     args = parser.parse_args(sys.argv[1:])
     args.save_iterations.append(args.iterations)
     
     print("Optimizing " + args.model_path)
-
+    opt=op.extract(args)
+    # opt.iterations=20
     # Initialize system state (RNG)
     safe_state(args.quiet)
-    if os.path.exists(os.path.join(args.model_path_args, "pred")) and args.exp_name!="default":
-        print("Model path already exists, exiting")
-        exit(1)
+
     # Start GUI server, configure and run training
     network_gui.init(args.ip, args.port)
     torch.autograd.set_detect_anomaly(args.detect_anomaly)
-    training(lp.extract(args), op.extract(args), pp.extract(args), args.test_iterations, args.save_iterations, args.checkpoint_iterations, args.start_checkpoint, args.debug_from)
+    
+    
 
-    # All done
-    print("\nTraining complete.")
+    if args.wandb:
+        # wandb.config = {"scale": args.scale, "exp_name": args.exp_name, "dataset": args.source_path.split("/")[-1],"savepath":args.model_path, "feature_linear_lr":1e-3, "decoder_lr":1e-3, "style_trans_lr":1e-3, "app_encoder_lr":1e-3,"segnet_lr":1e-3}
+        
+        sweep_config = {'method': 'random'}
+        metric = {
+            'name': 'loss',
+            'goal': 'minimize'   
+            }
+
+        sweep_config['metric'] = metric
+        parameters_dict = {
+            'decoder_lr': {
+                'values': [5e-4]
+                },
+            'style_trans_lr': {
+                'values': [1e-4]
+                },
+            'app_encoder_lr': {
+                'values': [5e-4] #1e-5, 5e-5, 1e-4, 5e-4, 1e-3, 5e-3, 1e-2
+                },
+            'segnet_lr':{
+                'values': [5e-4] 
+                }, #1e-5, 5e-5, 1e-4, 5e-4, 1e-3, 5e-3, 1e-2
+            'densify_until_iter':{
+                'values': [15000]
+                },
+            'densify_from_iter':{
+                'values': [3000]
+                },
+            'densification_interval':{
+                'values': [3000]
+                },
+            'maskrs_max':{
+                'values': [200]
+                },
+            # 'prune_only_interval':{
+            #     'values': [3000,1000]
+            #     },
+            # 'prune_only_start_step':{
+            #     'values': [1000,5000]
+            #     },
+            # 'prune_only_end_step':{
+            #     'values': [30000,15000,10000]
+            #     },
+            'prune_size_threshold':{
+                'values': [0.2]
+                },
+            "apploss_random_ratio":{
+                'values': [0.1,0.05,0.01,0.005]
+            },
+            "apploss_pair_ratio":{
+                'values': [1,1.5,0.5,0.05]
+            },
+            "lambda_dssim":{
+                'values': [0.5,0.55,0.6,0.65,0.7,0.75]
+            },
+            "kernel_size":{
+                "values":[0.1,1,0.01,2]
+            }
+            }
+            
+        sweep_config['parameters'] = parameters_dict
+
+
+        global opt_g
+        opt_g = (lp.extract(args), opt, pp.extract(args), args.test_iterations, args.save_iterations, args.checkpoint_iterations, args.start_checkpoint, args.debug_from)
+        sweep_id = wandb.sweep(sweep_config, project="gaussian-mip")
+                # Initialize system state (RNG)
+        safe_state(args.quiet)
+
+        # Start GUI server, configure and run training
+        torch.autograd.set_detect_anomaly(args.detect_anomaly)
+        # training(lp.extract(args), opt, pp.extract(args),args)
+        
+        # All done
+        args.model_path_args=args.model_path_args+"_"+str(sweep_id)
+        print("Optimizing " + args.model_path_args)
+        if os.path.exists(os.path.join(args.model_path_args, "pred")) and args.exp_name!="default":
+            print("Model path already exists, exiting")
+            exit(1)
+        print("\nReconstruction complete.")
+        wandb.agent(sweep_id, training, count=100)
+    else:
+        training()
+
+        # All done
+        print("\nTraining complete.")

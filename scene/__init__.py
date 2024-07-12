@@ -26,6 +26,7 @@ class Scene:
         """b
         :param path: Path to colmap scene main folder.
         """
+
         self.model_path = args.model_path
         self.loaded_iter = None
         self.gaussians = gaussians
@@ -90,6 +91,7 @@ class Scene:
         self.gaussians.save_ply(os.path.join(point_cloud_path, "point_cloud.ply"))
 
     def getTrainCameras(self, scale=4.0):
+        
         return self.train_cameras[scale]
 
     def getTestCameras(self, scale=4.0):

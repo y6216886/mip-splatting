@@ -1,0 +1,1 @@
+{"total_points": 100040, "_timestamp": 1720236370.6415713, "Mean PSNR": 9.7921781539917, "Mean SSIM": 0.6110289096832275, "Mean LIPIS_alex": 0.8294533491134644, "Mean MSE": 0.10849014669656754, "_runtime": 39.63168716430664, "_step": 1, "_wandb": {"runtime": 37}}
