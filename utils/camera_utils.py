@@ -13,14 +13,24 @@ from scene.cameras import Camera
 import numpy as np
 from utils.general_utils import PILtoTorch
 from utils.graphics_utils import fov2focal
-
+import torch
 WARNED = False
 
 def loadCam(args, id, cam_info, resolution_scale):
     orig_w, orig_h = cam_info.image.size
-
+    # breakpoint()
     if args.resolution in [1, 2, 4, 8, 16, 32, 64]:
         resolution = round(orig_w/(resolution_scale * args.resolution)), round(orig_h/(resolution_scale * args.resolution))
+        ##guassian-w
+        focal_length_y=fov2focal(cam_info.FovY, cam_info.height)      #
+        focal_length_x=fov2focal(cam_info.FovX, cam_info.width)
+        intrinsic = torch.zeros(size=(3, 3), dtype=torch.float32,device="cuda")
+        intrinsic[0,0]=focal_length_x/args.resolution
+        intrinsic[1,1]=focal_length_y/args.resolution
+        intrinsic[0,2]=cam_info.width/(2*args.resolution)       #
+        intrinsic[1,2]=cam_info.height/(2*args.resolution)
+        intrinsic[2,2]=1
+        ##guassian-w
     else:  # should be a type that converts to float
         if args.resolution == -1:
             if orig_w > 1600:
@@ -49,7 +59,7 @@ def loadCam(args, id, cam_info, resolution_scale):
     return Camera(colmap_id=cam_info.uid, R=cam_info.R, T=cam_info.T, 
                   FoVx=cam_info.FovX, FoVy=cam_info.FovY, 
                   image=gt_image, gt_alpha_mask=loaded_mask,
-                  image_name=cam_info.image_name, uid=id, data_device=args.data_device)
+                  image_name=cam_info.image_name, uid=id, data_device=args.data_device, intrinsic_martix=intrinsic)
 
 def cameraList_from_camInfos(cam_infos, resolution_scale, args):
     camera_list = []

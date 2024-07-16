@@ -1,0 +1,22 @@
+Output folder: /root/young/code/mip-splatting/output/brandenburggate
+Tensorboard not available: not logging progress
+
+
+
+
+Reading camera 1363/1363
+Loading Training Cameras
+Loading Test Cameras
+Number of points at initialisation :  100040
+/root/miniconda3/envs/mip-splatting/lib/python3.8/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and will be removed in 0.15, please use 'weights' instead.
+  warnings.warn(
+/root/miniconda3/envs/mip-splatting/lib/python3.8/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and will be removed in 0.15. The current behavior is equivalent to passing `weights=MaskRCNN_ResNet50_FPN_Weights.COCO_V1`. You can also use `weights=MaskRCNN_ResNet50_FPN_Weights.DEFAULT` to get the most up-to-date weights.
+  warnings.warn(msg)
+Traceback (most recent call last):
+  File "train-wildfeature.py", line 71, in training
+    gaussians.restore(model_params, opt)
+  File "/root/young/code/mip-splatting/scene/gaussian_model.py", line 102, in restore
+    self.optimizer.load_state_dict(opt_dict)
+  File "/root/miniconda3/envs/mip-splatting/lib/python3.8/site-packages/torch/optim/optimizer.py", line 166, in load_state_dict
+    raise ValueError("loaded state dict has a different number of "
+ValueError: loaded state dict has a different number of parameter groups

@@ -3,8 +3,12 @@ cd /root/young/code/mip-splatting/
 dataset_name=brandenburg_gate #should work in path
 source_path=/root/young/code/unconstrained-gs/data/$dataset_name
 
+
+# for i in {1,2,3,4,5,6,7,8,9,10}
+# do
+cd /root/young/code/mip-splatting/
 # ####
-meta_name="app-random-app-maskrcnn-tune_finev1"
+meta_name="tune"
 # name=default
 
 
@@ -12,7 +16,7 @@ meta_name="app-random-app-maskrcnn-tune_finev1"
 model_path=output/$dataset_name/wild/$meta_name
 echo $model_path
 # "./output", os.path.basename(args.source_path), "wild", args.exp_name
-command="CUDA_VISIBLE_DEVICES=1  python train-wildfeature.py -s /root/young/code/unconstrained-gs/data/brandenburg_gate -m /root/young/code/mip-splatting/output/brandenburggate --eval --load_allres --sample_more_highres --white_background --port 6310 --model_path_args  $model_path --appearance --mask --masktype maskrcnn --encode_a_random"
+command="CUDA_VISIBLE_DEVICES=1  python train-wildfeature.py -s /root/young/code/unconstrained-gs/data/brandenburg_gate -m /root/young/code/mip-splatting/output/brandenburggate --eval --load_allres --sample_more_highres --white_background --port 6322 --model_path_args  $model_path --appearance --mask --masktype maskrcnn --encode_a_random"
 
 
 
@@ -42,4 +46,4 @@ cd $codepath
 # Execute the command
 eval "$command"
 # done
-cd $codepath
+# done

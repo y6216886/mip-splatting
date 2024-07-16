@@ -1,0 +1,19 @@
+Output folder: /root/young/code/mip-splatting/output/brandenburggate
+Tensorboard not available: not logging progress
+
+
+
+Reading camera 1363/1363
+Loading Training Cameras
+Traceback (most recent call last):
+  File "train-wildfeature.py", line 65, in training
+    scene = Scene(dataset, gaussians, resolution_scales=[scale])
+  File "/root/young/code/mip-splatting/scene/__init__.py", line 77, in __init__
+    self.train_cameras[resolution_scale] = cameraList_from_camInfos(scene_info.train_cameras, resolution_scale, args)
+  File "/root/young/code/mip-splatting/utils/camera_utils.py", line 58, in cameraList_from_camInfos
+    camera_list.append(loadCam(args, id, c, resolution_scale))
+  File "/root/young/code/mip-splatting/utils/camera_utils.py", line 49, in loadCam
+    return Camera(colmap_id=cam_info.uid, R=cam_info.R, T=cam_info.T,
+  File "/root/young/code/mip-splatting/scene/cameras.py", line 46, in __init__
+    self.original_image *= torch.ones((1, self.image_height, self.image_width), device=self.data_device)
+RuntimeError: CUDA out of memory. Tried to allocate 2.00 MiB (GPU 0; 23.69 GiB total capacity; 566.41 MiB already allocated; 2.94 MiB free; 590.00 MiB reserved in total by PyTorch) If reserved memory is >> allocated memory try setting max_split_size_mb to avoid fragmentation.  See documentation for Memory Management and PYTORCH_CUDA_ALLOC_CONF

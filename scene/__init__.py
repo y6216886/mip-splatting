@@ -22,7 +22,7 @@ class Scene:
 
     gaussians : GaussianModel
 
-    def __init__(self, args : ModelParams, gaussians : GaussianModel, load_iteration=None, shuffle=True, resolution_scales=[4.0]):
+    def __init__(self, args : ModelParams, gaussians : GaussianModel, load_iteration=None, shuffle=True, resolution_scales=[4.0], pretrained=False):
         """b
         :param path: Path to colmap scene main folder.
         """
@@ -30,6 +30,7 @@ class Scene:
         self.model_path = args.model_path
         self.loaded_iter = None
         self.gaussians = gaussians
+        self.pretrain=pretrained
 
         if load_iteration:
             if load_iteration == -1:
@@ -51,7 +52,7 @@ class Scene:
             scene_info = sceneLoadTypeCallbacks["Multi-scale"](args.source_path, args.white_background, args.eval, args.load_allres)
         else:
             assert False, "Could not recognize scene type!"
-
+        # breakpoint()
         if not self.loaded_iter:
             with open(scene_info.ply_path, 'rb') as src_file, open(os.path.join(self.model_path, "input.ply") , 'wb') as dest_file:
                 dest_file.write(src_file.read())
@@ -83,6 +84,9 @@ class Scene:
                                                            "point_cloud",
                                                            "iteration_" + str(self.loaded_iter),
                                                            "point_cloud.ply"))
+        elif self.pretrain:
+            pass
+            
         else:
             self.gaussians.create_from_pcd(scene_info.point_cloud, self.cameras_extent)
 
@@ -90,9 +94,9 @@ class Scene:
         point_cloud_path = os.path.join(self.model_path, "point_cloud/iteration_{}".format(iteration))
         self.gaussians.save_ply(os.path.join(point_cloud_path, "point_cloud.ply"))
 
-    def getTrainCameras(self, scale=4.0):
+    def getTrainCameras(self, scale=1):
         
         return self.train_cameras[scale]
 
-    def getTestCameras(self, scale=4.0):
+    def getTestCameras(self, scale=1):
         return self.test_cameras[scale]

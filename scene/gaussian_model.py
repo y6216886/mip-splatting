@@ -72,11 +72,17 @@ class GaussianModel:
             self.max_radii2D,
             self.xyz_gradient_accum,
             self.denom,
+            self._vgg_features,
             self.optimizer.state_dict(),
             self.spatial_lr_scale,
+            self.style_transfer.state_dict(),
+            self.decoder.state_dict(),
+            self.implicit_mask.state_dict(),
+            self.filter_3D
         )
     
-    def restore(self, model_args, training_args):
+    def restore(self, model_args, training_args, vgg_encoder, args):
+        self.training_setup_style_feature(training_args, vgg_encoder, args)
         (self.active_sh_degree, 
         self._xyz, 
         self._features_dc, 
@@ -87,12 +93,24 @@ class GaussianModel:
         self.max_radii2D, 
         xyz_gradient_accum, 
         denom,
+        self._vgg_features,
         opt_dict, 
-        self.spatial_lr_scale) = model_args
-        self.training_setup(training_args)
+        self.spatial_lr_scale,
+        style_transfer_state_dict,
+        decoder_state_dict,
+        implicit_mask_state_dict,
+        self.filter_3D
+        ) = model_args
+
+        
         self.xyz_gradient_accum = xyz_gradient_accum
         self.denom = denom
-        self.optimizer.load_state_dict(opt_dict)
+        # self.optimizer.load_state_dict(opt_dict)
+        self.style_transfer.load_state_dict(style_transfer_state_dict),
+        self.decoder.load_state_dict(decoder_state_dict),
+        self.implicit_mask.load_state_dict(implicit_mask_state_dict)
+        
+        
 
     @property
     def get_scaling(self):

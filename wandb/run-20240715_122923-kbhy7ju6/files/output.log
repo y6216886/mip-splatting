@@ -1,0 +1,1298 @@
+Output folder: /root/young/code/mip-splatting/output/brandenburggate
+Tensorboard not available: not logging progress
+
+
+
+
+Reading camera 1363/1363
+Loading Training Cameras
+Loading Test Cameras
+Number of points at initialisation :  100040
+saving all gt_app_embdeeing to embedding list
+uid 0
+/root/miniconda3/envs/mip-splatting/lib/python3.8/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and will be removed in 0.15, please use 'weights' instead.
+  warnings.warn(
+/root/miniconda3/envs/mip-splatting/lib/python3.8/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and will be removed in 0.15. The current behavior is equivalent to passing `weights=MaskRCNN_ResNet50_FPN_Weights.COCO_V1`. You can also use `weights=MaskRCNN_ResNet50_FPN_Weights.DEFAULT` to get the most up-to-date weights.
+  warnings.warn(msg)
+Processing viewpoint_stack:   0%|                                                                | 0/859 [00:00<?, ?it/s]
+uid 1
+uid 2
+
+Processing viewpoint_stack:   0%|▏                                                       | 3/859 [00:02<10:46,  1.33it/s]
+uid 4
+uid 5
+
+Processing viewpoint_stack:   1%|▍                                                       | 6/859 [00:04<09:01,  1.58it/s]
+uid 7
+uid 8
+uid 9
+uid 10
+
+Processing viewpoint_stack:   1%|▌                                                       | 9/859 [00:06<08:31,  1.66it/s]
+uid 12
+uid 13
+uid 14
+uid 15
+
+Processing viewpoint_stack:   2%|▉                                                      | 15/859 [00:08<06:10,  2.28it/s]
+uid 17
+uid 18
+uid 19
+uid 20
+
+Processing viewpoint_stack:   2%|█▎                                                     | 20/859 [00:10<05:52,  2.38it/s]
+uid 22
+uid 23
+uid 24
+uid 25
+uid 26
+uid 27
+
+Processing viewpoint_stack:   3%|█▊                                                     | 28/859 [00:12<04:42,  2.94it/s]
+uid 29
+uid 30
+uid 31
+uid 32
+uid 33
+uid 34
+uid 35
+uid 36
+
+Processing viewpoint_stack:   4%|██▎                                                    | 37/859 [00:14<03:35,  3.81it/s]
+uid 38
+uid 39
+uid 40
+uid 41
+uid 42
+uid 43
+uid 44
+uid 45
+uid 46
+uid 47
+uid 48
+uid 49
+
+Processing viewpoint_stack:   6%|███▏                                                   | 50/859 [00:17<01:26,  9.40it/s]
+uid 51
+uid 52
+uid 53
+uid 54
+uid 55
+uid 56
+uid 57
+uid 58
+uid 59
+uid 60
+uid 61
+uid 62
+uid 63
+uid 64
+uid 65
+uid 66
+uid 67
+uid 68
+uid 69
+uid 70
+uid 71
+uid 72
+uid 73
+uid 74
+uid 75
+uid 76
+uid 77
+
+Processing viewpoint_stack:   9%|████▊                                                  | 76/859 [00:18<00:58, 13.27it/s]
+uid 79
+uid 80
+uid 81
+uid 82
+uid 83
+uid 84
+uid 85
+uid 86
+uid 87
+uid 88
+uid 89
+uid 90
+uid 91
+uid 92
+uid 93
+uid 94
+uid 95
+uid 96
+uid 97
+uid 98
+uid 99
+uid 100
+
+Processing viewpoint_stack:  12%|██████▎                                                | 99/859 [00:20<01:07, 11.20it/s]
+uid 102
+uid 103
+uid 104
+uid 105
+uid 106
+uid 107
+uid 108
+uid 109
+uid 110
+uid 111
+uid 112
+uid 113
+uid 114
+uid 115
+uid 116
+uid 117
+uid 118
+uid 119
+
+uid 139
+uid 121
+uid 122
+uid 123
+uid 124
+uid 125
+uid 126
+uid 127
+uid 128
+uid 129
+uid 130
+uid 131
+uid 132
+uid 133
+uid 134
+uid 135
+uid 136
+uid 137
+uid 138
+uid 139
+uid 140
+uid 141
+uid 142
+
+Processing viewpoint_stack:  17%|████████▉                                             | 142/859 [00:24<00:44, 16.24it/s]
+uid 144
+uid 145
+uid 146
+uid 147
+uid 148
+uid 149
+uid 150
+uid 151
+uid 152
+uid 153
+uid 154
+uid 155
+uid 156
+uid 157
+uid 158
+uid 159
+uid 160
+uid 161
+uid 162
+uid 163
+uid 164
+uid 165
+uid 166
+uid 167
+
+Processing viewpoint_stack:  19%|██████████▎                                           | 165/859 [00:27<00:58, 11.92it/s]
+uid 169
+uid 170
+uid 171
+uid 172
+uid 173
+uid 174
+uid 175
+uid 176
+uid 177
+uid 178
+uid 179
+uid 180
+uid 181
+uid 182
+uid 183
+uid 184
+uid 185
+uid 186
+uid 187
+uid 188
+uid 189
+uid 190
+uid 191
+uid 192
+uid 193
+uid 194
+uid 195
+uid 196
+uid 197
+uid 198
+uid 199
+uid 200
+uid 201
+uid 202
+
+Processing viewpoint_stack:  24%|████████████▋                                         | 202/859 [00:29<00:26, 24.39it/s]
+uid 204
+uid 205
+uid 206
+uid 207
+uid 208
+uid 209
+uid 210
+uid 211
+uid 212
+uid 213
+uid 214
+uid 215
+uid 216
+uid 217
+uid 218
+uid 219
+uid 220
+uid 221
+uid 222
+uid 223
+uid 224
+uid 225
+uid 226
+uid 227
+uid 228
+uid 229
+uid 230
+uid 231
+uid 232
+uid 233
+uid 234
+uid 235
+uid 236
+uid 237
+uid 238
+uid 239
+uid 240
+uid 241
+uid 242
+uid 243
+uid 244
+
+Processing viewpoint_stack:  28%|███████████████▎                                      | 244/859 [00:31<00:27, 22.77it/s]
+uid 246
+uid 247
+uid 248
+uid 249
+uid 250
+uid 251
+uid 252
+uid 253
+uid 254
+uid 255
+uid 256
+uid 257
+uid 258
+uid 259
+uid 260
+uid 261
+uid 262
+uid 263
+uid 264
+uid 265
+uid 266
+uid 267
+uid 268
+uid 269
+uid 270
+uid 271
+uid 272
+uid 273
+uid 274
+uid 275
+uid 276
+uid 277
+uid 278
+uid 279
+uid 280
+uid 281
+uid 282
+uid 283
+uid 284
+uid 285
+uid 286
+uid 287
+uid 288
+uid 289
+uid 290
+
+Processing viewpoint_stack:  34%|██████████████████▏                                   | 289/859 [00:32<00:22, 25.08it/s]
+uid 292
+uid 293
+uid 294
+uid 295
+uid 296
+uid 297
+uid 298
+uid 299
+uid 300
+uid 301
+uid 302
+uid 303
+uid 304
+uid 305
+uid 306
+uid 307
+uid 308
+uid 309
+uid 310
+uid 311
+uid 312
+uid 313
+uid 314
+uid 315
+uid 316
+uid 317
+uid 318
+uid 319
+uid 320
+uid 321
+uid 322
+uid 323
+uid 324
+
+Processing viewpoint_stack:  38%|████████████████████▍                                 | 325/859 [00:34<00:26, 20.12it/s]
+uid 326
+uid 327
+uid 328
+uid 329
+uid 330
+uid 331
+uid 332
+uid 333
+uid 334
+uid 335
+uid 336
+uid 337
+uid 338
+uid 339
+uid 340
+uid 341
+uid 342
+uid 343
+uid 344
+uid 345
+uid 346
+uid 347
+uid 348
+uid 349
+uid 350
+uid 351
+uid 352
+uid 353
+uid 354
+uid 355
+uid 356
+uid 357
+uid 358
+uid 359
+uid 360
+uid 361
+uid 362
+uid 363
+uid 364
+uid 365
+uid 366
+uid 367
+uid 368
+uid 369
+uid 370
+uid 371
+uid 372
+uid 373
+
+Processing viewpoint_stack:  43%|███████████████████████▍                              | 372/859 [00:37<00:17, 28.55it/s]
+uid 375
+uid 376
+uid 377
+uid 378
+uid 379
+uid 380
+uid 381
+uid 382
+uid 383
+uid 384
+uid 385
+uid 386
+uid 387
+uid 388
+uid 389
+uid 390
+uid 391
+uid 392
+uid 393
+uid 394
+uid 395
+uid 396
+uid 397
+uid 398
+uid 399
+uid 400
+uid 401
+uid 402
+uid 403
+uid 404
+uid 405
+uid 406
+uid 407
+uid 408
+uid 409
+uid 410
+uid 411
+uid 412
+uid 413
+uid 414
+uid 415
+uid 416
+uid 417
+uid 418
+uid 419
+
+Processing viewpoint_stack:  49%|██████████████████████████▎                           | 418/859 [00:38<00:18, 23.80it/s]
+uid 421
+uid 422
+uid 423
+uid 424
+uid 425
+uid 426
+uid 427
+uid 428
+uid 429
+uid 430
+uid 431
+uid 432
+uid 433
+uid 434
+uid 435
+uid 436
+uid 437
+uid 438
+uid 439
+uid 440
+uid 441
+uid 442
+uid 443
+uid 444
+uid 445
+uid 446
+uid 447
+uid 448
+uid 449
+uid 450
+uid 451
+uid 452
+uid 453
+uid 454
+uid 455
+uid 456
+uid 457
+uid 458
+uid 459
+uid 460
+uid 461
+uid 462
+uid 463
+uid 464
+uid 465
+uid 466
+uid 467
+uid 468
+uid 469
+uid 470
+uid 471
+uid 472
+uid 473
+uid 474
+uid 475
+uid 476
+uid 477
+uid 478
+uid 479
+uid 480
+uid 481
+
+Processing viewpoint_stack:  56%|██████████████████████████████                        | 479/859 [00:41<00:15, 25.25it/s]
+uid 483
+uid 484
+uid 485
+uid 486
+uid 487
+uid 488
+uid 489
+uid 490
+uid 491
+uid 492
+uid 493
+uid 494
+uid 495
+uid 496
+uid 497
+uid 498
+uid 499
+uid 500
+uid 501
+uid 502
+uid 503
+uid 504
+uid 505
+uid 506
+uid 507
+uid 508
+uid 509
+uid 510
+uid 511
+uid 512
+uid 513
+uid 514
+uid 515
+uid 516
+uid 517
+uid 518
+uid 519
+uid 520
+uid 521
+uid 522
+
+Processing viewpoint_stack:  60%|████████████████████████████████▌                     | 517/859 [00:43<00:14, 22.93it/s]
+uid 524
+uid 525
+uid 526
+uid 527
+uid 528
+uid 529
+uid 530
+uid 531
+uid 532
+uid 533
+uid 534
+uid 535
+uid 536
+uid 537
+uid 538
+uid 539
+uid 540
+uid 541
+uid 542
+uid 543
+uid 544
+uid 545
+uid 546
+uid 547
+uid 548
+uid 549
+uid 550
+uid 551
+uid 552
+uid 553
+uid 554
+uid 555
+uid 556
+uid 557
+uid 558
+uid 559
+uid 560
+uid 561
+uid 562
+uid 563
+uid 564
+uid 565
+uid 566
+
+Processing viewpoint_stack:  66%|███████████████████████████████████▍                  | 564/859 [00:45<00:09, 29.53it/s]
+uid 568
+uid 569
+uid 570
+uid 571
+uid 572
+uid 573
+uid 574
+uid 575
+uid 576
+uid 577
+uid 578
+uid 579
+uid 580
+uid 581
+uid 582
+uid 583
+uid 584
+uid 585
+uid 586
+uid 587
+uid 588
+uid 589
+uid 590
+uid 591
+uid 592
+uid 593
+uid 594
+uid 595
+uid 596
+uid 597
+uid 598
+uid 599
+uid 600
+
+Processing viewpoint_stack:  70%|█████████████████████████████████████▋                | 599/859 [00:46<00:18, 14.09it/s]
+uid 602
+uid 603
+uid 604
+uid 605
+uid 606
+uid 607
+uid 608
+uid 609
+uid 610
+uid 611
+uid 612
+uid 613
+uid 614
+uid 615
+uid 616
+uid 617
+uid 618
+uid 619
+uid 620
+uid 621
+uid 622
+uid 623
+uid 624
+uid 625
+uid 626
+uid 627
+uid 628
+uid 629
+uid 630
+uid 631
+uid 632
+uid 633
+uid 634
+uid 635
+uid 636
+uid 637
+uid 638
+uid 639
+uid 640
+uid 641
+uid 642
+uid 643
+uid 644
+uid 645
+uid 646
+uid 647
+uid 648
+uid 649
+uid 650
+uid 651
+uid 652
+uid 653
+uid 654
+uid 655
+uid 656
+uid 657
+uid 658
+
+Processing viewpoint_stack:  76%|█████████████████████████████████████████▏            | 655/859 [00:48<00:05, 36.54it/s]
+uid 660
+uid 661
+uid 662
+uid 663
+uid 664
+uid 665
+uid 666
+uid 667
+uid 668
+uid 669
+uid 670
+uid 671
+uid 672
+uid 673
+uid 674
+uid 675
+uid 676
+uid 677
+uid 678
+uid 679
+uid 680
+uid 681
+uid 682
+uid 683
+uid 684
+uid 685
+uid 686
+uid 687
+uid 688
+uid 689
+uid 690
+uid 691
+uid 692
+uid 693
+uid 694
+uid 695
+uid 696
+uid 697
+uid 698
+uid 699
+uid 700
+uid 701
+uid 702
+uid 703
+uid 704
+uid 705
+uid 706
+uid 707
+uid 708
+uid 709
+uid 710
+uid 711
+uid 712
+uid 713
+uid 714
+uid 715
+uid 716
+uid 717
+uid 718
+uid 719
+uid 720
+uid 721
+
+Processing viewpoint_stack:  84%|█████████████████████████████████████████████▍        | 722/859 [00:51<00:02, 48.83it/s]
+uid 723
+uid 724
+uid 725
+uid 726
+uid 727
+uid 728
+uid 729
+uid 730
+uid 731
+uid 732
+uid 733
+uid 734
+uid 735
+uid 736
+uid 737
+uid 738
+uid 739
+uid 740
+uid 741
+uid 742
+uid 743
+
+Processing viewpoint_stack:  87%|██████████████████████████████████████████████▊       | 744/859 [00:53<00:09, 11.58it/s]
+uid 745
+uid 746
+uid 747
+uid 748
+uid 749
+uid 750
+uid 751
+uid 752
+uid 753
+uid 754
+uid 755
+uid 756
+uid 757
+uid 758
+uid 759
+uid 760
+uid 761
+uid 762
+uid 763
+uid 764
+uid 765
+uid 766
+uid 767
+uid 768
+uid 769
+uid 770
+uid 771
+uid 772
+uid 773
+uid 774
+uid 775
+uid 776
+uid 777
+uid 778
+uid 779
+uid 780
+uid 781
+uid 782
+uid 783
+uid 784
+uid 785
+uid 786
+
+Processing viewpoint_stack:  91%|█████████████████████████████████████████████████▏    | 783/859 [00:55<00:04, 15.73it/s]
+uid 788
+uid 789
+uid 790
+uid 791
+uid 792
+uid 793
+uid 794
+uid 795
+uid 796
+uid 797
+uid 798
+uid 799
+uid 800
+uid 801
+uid 802
+uid 803
+uid 804
+uid 805
+uid 806
+uid 807
+uid 808
+uid 809
+uid 810
+uid 811
+uid 812
+uid 813
+uid 814
+uid 815
+uid 816
+uid 817
+uid 818
+uid 819
+uid 820
+uid 821
+uid 822
+uid 823
+uid 824
+uid 825
+uid 826
+uid 827
+uid 828
+uid 829
+uid 830
+uid 831
+uid 832
+uid 833
+uid 834
+uid 835
+uid 836
+uid 837
+uid 838
+uid 839
+uid 840
+uid 841
+
+Processing viewpoint_stack:  98%|████████████████████████████████████████████████████▊ | 841/859 [00:57<00:00, 26.09it/s]
+uid 843
+uid 844
+uid 845
+uid 846
+uid 847
+uid 848
+uid 849
+uid 850
+uid 851
+uid 852
+uid 853
+uid 854
+uid 855
+uid 856
+uid 857
+uid 858
+saving are done
+Processing viewpoint_stack: 100%|██████████████████████████████████████████████████████| 859/859 [00:58<00:00, 14.68it/s]
+Training progress:   0%|                                                                        | 0/5000 [00:00<?, ?it/s]
+[ITER 1] Evaluating test: L1 0.28951979875564576 PSNR 9.846014308929444
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Training progress:  12%|█████▍                                        | 590/5000 [02:58<15:16,  4.81it/s, Loss=0.1739242]
+
+
+
+
+
+
+
+
+
+Training progress:  14%|██████▎                                       | 690/5000 [03:19<12:04,  5.94it/s, Loss=0.1463818]
+
+
+
+
+
+
+
+
+Training progress:  16%|███████▎                                      | 790/5000 [03:35<11:16,  6.23it/s, Loss=0.1410045]
+
+
+
+
+
+
+
+Training progress:  18%|████████▏                                     | 890/5000 [03:50<08:39,  7.90it/s, Loss=0.1623468]
+
+
+
+
+
+
+Training progress:  20%|█████████                                     | 990/5000 [04:01<07:38,  8.74it/s, Loss=0.1295968]
+
+
+
+
+
+
+Training progress:  22%|█████████▉                                   | 1100/5000 [04:14<07:13,  9.00it/s, Loss=0.1336950]
+
+
+
+
+
+
+Training progress:  24%|██████████▊                                  | 1200/5000 [04:26<07:13,  8.77it/s, Loss=0.1534220]
+
+
+
+
+
+
+Training progress:  26%|███████████▌                                 | 1290/5000 [04:37<07:32,  8.20it/s, Loss=0.1479535]
+
+
+
+
+
+
+Training progress:  28%|████████████▌                                | 1390/5000 [04:49<06:58,  8.63it/s, Loss=0.1708094]
+
+
+
+
+
+
+Training progress:  30%|█████████████▍                               | 1490/5000 [05:01<07:01,  8.33it/s, Loss=0.1571791]
+
+
+
+
+
+
+Training progress:  32%|██████████████▍                              | 1600/5000 [05:14<06:19,  8.95it/s, Loss=0.1794791]
+
+
+
+
+
+Training progress:  34%|███████████████                              | 1680/5000 [05:24<06:07,  9.03it/s, Loss=0.1105687]
+
+
+
+
+
+
+
+Training progress:  36%|████████████████▏                            | 1800/5000 [05:38<06:36,  8.07it/s, Loss=0.1500796]
+
+
+
+
+
+
+Training progress:  38%|█████████████████                            | 1890/5000 [05:49<06:15,  8.29it/s, Loss=0.2181273]
+
+
+
+
+
+
+
+
+
+Training progress:  40%|██████████████████                           | 2000/5000 [06:08<09:12,  5.43it/s, Loss=0.1484312]
+
+
+
+
+
+
+
+
+
+Training progress:  42%|██████████████████▊                          | 2090/5000 [06:31<14:14,  3.40it/s, Loss=0.1424490]
+
+
+
+
+
+
+
+Training progress:  44%|███████████████████▋                         | 2190/5000 [06:50<06:07,  7.65it/s, Loss=0.2110757]
+
+
+
+
+
+
+Training progress:  46%|████████████████████▌                        | 2290/5000 [07:02<05:21,  8.42it/s, Loss=0.1599224]
+
+
+
+
+
+
+Training progress:  48%|█████████████████████▍                       | 2380/5000 [07:13<05:17,  8.26it/s, Loss=0.1477323]
+
+
+
+
+
+
+Training progress:  50%|██████████████████████▎                      | 2480/5000 [07:26<04:56,  8.50it/s, Loss=0.1371409]
+
+
+
+
+
+
+Training progress:  52%|███████████████████████▏                     | 2580/5000 [07:38<04:40,  8.64it/s, Loss=0.1326340]
+
+
+
+
+
+
+Training progress:  54%|████████████████████████                     | 2680/5000 [07:50<04:35,  8.44it/s, Loss=0.1846979]
+
+
+
+
+
+
+Training progress:  56%|█████████████████████████                    | 2780/5000 [08:02<04:22,  8.45it/s, Loss=0.1796096]
+
+
+
+
+
+
+
+Training progress:  58%|██████████████████████████                   | 2900/5000 [08:17<04:13,  8.27it/s, Loss=0.1539017]
+
+
+
+
+
+
+Training progress:  60%|██████████████████████████▉                  | 2990/5000 [08:28<04:03,  8.25it/s, Loss=0.1600014]
+
+
+
+
+
+
+Training progress:  62%|███████████████████████████▋                 | 3080/5000 [08:40<04:00,  8.00it/s, Loss=0.1677378]
+
+
+
+
+
+
+
+Training progress:  64%|████████████████████████████▊                | 3200/5000 [08:54<03:32,  8.46it/s, Loss=0.1922385]
+
+
+
+
+
+
+Training progress:  66%|█████████████████████████████▋               | 3300/5000 [09:07<03:18,  8.58it/s, Loss=0.1623128]
+
+
+
+
+
+
+Training progress:  68%|██████████████████████████████▌              | 3400/5000 [09:18<03:04,  8.68it/s, Loss=0.1667194]
+
+
+
+
+
+Training progress:  70%|███████████████████████████████▎             | 3480/5000 [09:28<02:57,  8.58it/s, Loss=0.1711019]
+
+
+
+
+
+
+
+Training progress:  72%|████████████████████████████████▍            | 3600/5000 [09:43<02:45,  8.48it/s, Loss=0.1548109]
+
+
+
+
+
+
+Training progress:  74%|█████████████████████████████████▏           | 3690/5000 [09:54<02:40,  8.15it/s, Loss=0.1726332]
+
+
+
+
+
+
+Training progress:  76%|██████████████████████████████████           | 3790/5000 [10:06<02:21,  8.52it/s, Loss=0.1509409]
+
+
+
+
+
+
+Training progress:  78%|███████████████████████████████████          | 3890/5000 [10:18<02:09,  8.55it/s, Loss=0.1645847]
+
+
+
+
+
+
+Training progress:  80%|███████████████████████████████████▉         | 3990/5000 [10:31<01:59,  8.44it/s, Loss=0.1232199]
+
+
+
+
+
+
+Training progress:  82%|████████████████████████████████████▊        | 4090/5000 [10:43<01:43,  8.77it/s, Loss=0.1896152]
+
+
+
+
+
+
+Training progress:  84%|█████████████████████████████████████▌       | 4180/5000 [10:54<01:37,  8.42it/s, Loss=0.1644355]
+
+
+
+
+
+
+
+Training progress:  86%|██████████████████████████████████████▋      | 4300/5000 [11:09<01:25,  8.22it/s, Loss=0.1228762]
+
+
+
+
+
+
+Training progress:  88%|███████████████████████████████████████▌     | 4400/5000 [11:21<01:11,  8.43it/s, Loss=0.1804620]
+
+
+
+
+
+
+Training progress:  90%|████████████████████████████████████████▌    | 4500/5000 [11:33<00:58,  8.55it/s, Loss=0.1478361]
+
+
+
+
+
+
+Training progress:  92%|█████████████████████████████████████████▎   | 4590/5000 [11:44<00:48,  8.49it/s, Loss=0.1761671]
+
+
+
+
+
+
+Training progress:  94%|██████████████████████████████████████████▏  | 4690/5000 [11:56<00:36,  8.52it/s, Loss=0.1754353]
+
+
+
+
+
+
+Training progress:  96%|███████████████████████████████████████████  | 4790/5000 [12:08<00:24,  8.50it/s, Loss=0.1695916]
+
+
+
+
+
+
+Training progress:  98%|████████████████████████████████████████████ | 4890/5000 [12:20<00:12,  8.53it/s, Loss=0.1446983]
+
+
+
+
+
+
+Training progress: 100%|████████████████████████████████████████████▉| 4990/5000 [12:33<00:01,  8.40it/s, Loss=0.1609600]
+Computing 3D filter
+Training progress: 100%|█████████████████████████████████████████████| 5000/5000 [12:34<00:00,  6.63it/s, Loss=0.2416851]
+  0%|                                                                            | 0/10 [00:00<?, ?it/s]
+image_pre_path /root/young/code/mip-splatting/output/test1_iipf71z8/pred/001.png gt_path /root/young/code/mip-splatting/output/test1_iipf71z8/gt/001.png
+Mean PSNR 9.827407836914062
+Mean SSIM 0.6110301613807678
+
+100%|███████████████████████████████████████████████████████████████████| 10/10 [00:00<00:00, 30.60it/s]

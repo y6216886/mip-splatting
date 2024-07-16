@@ -1,0 +1,28 @@
+wandb_version: 1
+
+app_encoder_lr:
+  value: 0.0005
+apploss_pair_ratio:
+  value: 0.5
+apploss_random_ratio:
+  value: 0.1
+decoder_lr:
+  value: 0.0005
+densification_interval:
+  value: 3000
+densify_from_iter:
+  value: 3000
+densify_until_iter:
+  value: 15000
+kernel_size:
+  value: 0.01
+lambda_dssim:
+  value: 0.55
+maskrs_max:
+  value: 200
+prune_size_threshold:
+  value: 0.2
+segnet_lr:
+  value: 0.0005
+style_trans_lr:
+  value: 0.0001

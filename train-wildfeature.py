@@ -69,7 +69,8 @@ def training():
     if checkpoint:
         (model_params, first_iter) = torch.load(checkpoint)
         gaussians.restore(model_params, opt)
-
+        first_iter=1
+        
     bg_color = [1, 1, 1] if dataset.white_background else [0, 0, 0]
     background = torch.tensor(bg_color, dtype=torch.float32, device="cuda")
 
@@ -85,6 +86,9 @@ def training():
     len_cam=len(viewpoint_stack)
     embedding_a_list = [None] * (len(viewpoint_stack)+1)
     print("saving all gt_app_embdeeing to embedding list")
+    # networks=(gaussians.feature_linear, gaussians.app_encoder, gaussians.style_transfer,  gaussians.decoder)
+    # training_report(tb_writer, 0, 0, 0, 0, 9, [0], scene, render, (pipe, background, dataset.kernel_size), scale, networks=networks)
+
     # for viewpoint_cam in viewpoint_stack:
     for viewpoint_cam in tqdm(viewpoint_stack, desc="Processing viewpoint_stack"):
                 id=viewpoint_cam.uid
@@ -270,9 +274,10 @@ def training():
                 gaussians.optimizer.step()
                 gaussians.optimizer.zero_grad(set_to_none = True)
 
-            if (iteration in checkpoint_iterations):
+            if iteration == opt.iterations:
                 print("\n[ITER {}] Saving Checkpoint".format(iteration))
-                torch.save((gaussians.capture(), iteration), scene.model_path + "/chkpnt" + str(iteration) + ".pth")
+                # torch.save((gaussians.capture(), iteration), args.model_path_args + "/chkpnt" + str(iteration) + ".pth")
+                torch.save((gaussians.capture(), iteration), args.model_path_args + "/chkpnt" + str(iteration) + ".pth")
             if iteration == opt.iterations:
                 calculate_metrics(args.model_path_args, args.wandb)
                 
@@ -376,13 +381,13 @@ if __name__ == "__main__":
     parser.add_argument("--model_path_args", type=str, default="output/test1")
     parser.add_argument('--encode_a_random', action='store_true', default=True)
     parser.add_argument('--wandb', action='store_true', default=True)
-    
+    parser.add_argument("--iterations_", type=int, default=30000)
     args = parser.parse_args(sys.argv[1:])
     args.save_iterations.append(args.iterations)
     
     print("Optimizing " + args.model_path)
-    opt=op.extract(args)
-    # opt.iterations=20
+    opt = op.extract(args)
+    opt.iterations = args.iterations_
     # Initialize system state (RNG)
     safe_state(args.quiet)
 
@@ -440,16 +445,16 @@ if __name__ == "__main__":
                 'values': [0.2]
                 },
             "apploss_random_ratio":{
-                'values': [0.1,0.05,0.01,0.005]
+                'values': [0.1]
             },
             "apploss_pair_ratio":{
-                'values': [1,1.5,0.5,0.05]
+                'values': [0.5]
             },
             "lambda_dssim":{
-                'values': [0.5,0.55,0.6,0.65,0.7,0.75]
+                'values': [0.55]
             },
             "kernel_size":{
-                "values":[0.1,1,0.01,2]
+                "values":[0.01]
             }
             }
             
@@ -473,9 +478,8 @@ if __name__ == "__main__":
             print("Model path already exists, exiting")
             exit(1)
         print("\nReconstruction complete.")
-        wandb.agent(sweep_id, training, count=100)
+        wandb.agent(sweep_id, training, count=1)
     else:
         training()
-
         # All done
         print("\nTraining complete.")

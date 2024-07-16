@@ -1,0 +1,74 @@
+wandb_version: 1
+
+_wandb:
+  desc: null
+  value:
+    python_version: 3.8.19
+    cli_version: 0.17.4
+    framework: torch
+    is_jupyter_run: false
+    is_kaggle_kernel: true
+    start_time: 1721023547
+    t:
+      1:
+      - 1
+      - 5
+      - 41
+      - 53
+      - 55
+      - 79
+      2:
+      - 1
+      - 5
+      - 41
+      - 53
+      - 55
+      - 79
+      3:
+      - 23
+      - 37
+      4: 3.8.19
+      5: 0.17.4
+      8:
+      - 2
+      - 5
+      13: linux-x86_64
+app_encoder_lr:
+  desc: null
+  value: 0.0005
+apploss_pair_ratio:
+  desc: null
+  value: 0.5
+apploss_random_ratio:
+  desc: null
+  value: 0.1
+decoder_lr:
+  desc: null
+  value: 0.0005
+densification_interval:
+  desc: null
+  value: 3000
+densify_from_iter:
+  desc: null
+  value: 3000
+densify_until_iter:
+  desc: null
+  value: 15000
+kernel_size:
+  desc: null
+  value: 0.01
+lambda_dssim:
+  desc: null
+  value: 0.55
+maskrs_max:
+  desc: null
+  value: 200
+prune_size_threshold:
+  desc: null
+  value: 0.2
+segnet_lr:
+  desc: null
+  value: 0.0005
+style_trans_lr:
+  desc: null
+  value: 0.0001
