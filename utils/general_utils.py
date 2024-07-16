@@ -154,8 +154,34 @@ def interpolate_views(view0,view1,view_intrinsic,length):
         results.append(view_temp)
     return results
 
-def generate_multi_views(views,view_intrinsic,length=60):
+def lift_camera(world_view_matrix, lift_amount):
+    """
+    Lifts the camera vertically by modifying the world view matrix.
+
+    Args:
+        world_view_matrix: Existing world view matrix (4x4).
+        lift_amount: Vertical lift amount (float).
+
+    Returns:
+        Modified world view matrix (4x4) as float32.
+    """
+    # Compute the Camera to World matrix by taking the inverse of the world view matrix
+    C2W = torch.inverse(world_view_matrix)
+    
+    # Extract the camera center from the C2W matrix (the translation part)
+    C2W[3, :3]+=torch.Tensor(lift_amount).cuda()
+    
+    # Compute the modified World to View matrix by taking the inverse of the modified C2W
+    modified_world_view_matrix = torch.inverse(C2W)
+    
+    # Return the resulting matrix as float32
+    return modified_world_view_matrix
+
+def generate_multi_views(views, view_intrinsic,length=60):
     generated_views=[]
+    views[1].world_view_transform=lift_camera(views[1].world_view_transform, lift_amount=[0.3, -1, 2])
+    
+    views[0].world_view_transform=lift_camera(views[0].world_view_transform, lift_amount=[0,-1,4]) #lift_amount=[horizontal (negative for xx),vertical(negative for up, positive for down),depth (negative for forward, positive for backward)]
     for i in range(len(views)-1):
         views_temp=interpolate_views(views[i],views[i+1],view_intrinsic,length)
         generated_views.extend(views_temp)

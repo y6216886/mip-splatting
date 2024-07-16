@@ -52,22 +52,41 @@ def render_interpolate(model_path, name, iteration, views, gaussians, pipeline, 
             torchvision.utils.save_image(rendering, os.path.join(sub_s2d_inter_path, f"{idx}_{inter_weight:.2f}" + ".png"))
     gaussians.colornet_inter_weight=1.0
 
+def get_cameras_by_colmap_ids(image_names, camera_dict):
+    """
+    Retrieve camera instances by their colmap_id.
+    
+    Args:
+        colmap_ids (list): List of colmap_id values.
+        camera_dict (dict): Dictionary mapping colmap_id to camera instances.
+    
+    Returns:
+        List of camera instances corresponding to the given colmap_id values.
+    """
+    for image_name in image_names:
+        assert image_name in camera_dict, f"Camera with colmap_id {image_name} not found."
+    return [camera_dict[image_name] for image_name in image_names]
 
 def render_multiview_vedio(model_path, name, train_views, test_views, gaussians, pipeline, background,args,dataset):
-    
+    combine_list=train_views+test_views
+    camera_dict = {camera.image_name: camera for camera in combine_list}
     if args.scene_name=="brandenburg":
         format_idx=11#4
-        # select_view_id=[12, 59, 305]
-        select_view_id=[120, 159, 505]
+        select_view_id=["95597682_5978972152", "90076548_4759730564"]
+        # select_view_id=[120, 159, 505]
         length_view=90*2
-        appear_idxs=[313,78]#
+        appear_idxs=["95597682_5978972152"]#
         name="train"
-        view_appears=[train_views[i] for i in appear_idxs]
+        #get train_views with colmap_id =2.0
+        
+        # view_appears=[train_views[i] for i in appear_idxs]
 
         # intrinsic_idxs=[0,1,2,3,4,5,7,8,9]
         # name="test"
         # view_intrinsics=[test_views[i] for i in intrinsic_idxs]
-        views=[train_views[i] for i in select_view_id]
+        # views=[train_views[i] for i in select_view_id]
+        views = get_cameras_by_colmap_ids(select_view_id, camera_dict)
+        view_appears=get_cameras_by_colmap_ids(appear_idxs, camera_dict)
     elif args.scene_name=="sacre":
         format_idx=38 #
         select_view_id=[753,657,595,181,699,]#700
@@ -75,12 +94,14 @@ def render_multiview_vedio(model_path, name, train_views, test_views, gaussians,
         
         appear_idxs=[350,76]
         name="train"
-        view_appears=[train_views[i] for i in appear_idxs]
+        # view_appears=[train_views[i] for i in appear_idxs]
 
         # intrinsic_idxs=[6,12,15,17]
         # name="test"
         # view_intrinsics=[test_views[i] for i in intrinsic_idxs]
-        views=[train_views[i] for i in select_view_id]
+        # views=[train_views[i] for i in select_view_id]
+        views = get_cameras_by_colmap_ids(select_view_id, camera_dict)
+        view_appears=get_cameras_by_colmap_ids(appear_idxs, camera_dict)
     elif args.scene_name=="trevi":
         format_idx=17 
         select_view_id=[408,303,79,893,395,281]#700
@@ -89,12 +110,14 @@ def render_multiview_vedio(model_path, name, train_views, test_views, gaussians,
         appear_idxs=[317,495]
         
         name="train"
-        view_appears=[train_views[i] for i in appear_idxs]
+        # view_appears=[train_views[i] for i in appear_idxs]
 
         # intrinsic_idxs=[0,2,3,8,9,11]
         # name="test"
         # view_intrinsics=[test_views[i] for i in intrinsic_idxs]
-        views=[train_views[i] for i in select_view_id]
+        # views=[train_views[i] for i in select_view_id]
+        views = get_cameras_by_colmap_ids(select_view_id, camera_dict)
+        view_appears=get_cameras_by_colmap_ids(appear_idxs, camera_dict)
         
     for vid, view_appear in enumerate(tqdm(view_appears, desc="Rendering progress")):
         view_appear.image_height,view_appear.image_width=train_views[format_idx].image_height,train_views[format_idx].image_width
@@ -114,7 +137,7 @@ def render_multiview_vedio(model_path, name, train_views, test_views, gaussians,
         rendering = render(view_appear, gaussians, pipe=pipeline, bg_color=background,kernel_size=dataset.kernel_size, subpixel_offset=subpixel_offset)["render"]
         for idx, view in enumerate(tqdm(generated_views, desc="Rendering progress")):
             view.camera_center=view_appear.camera_center
-            gt_image = view.original_image.unsqueeze(0).cuda()
+            gt_image = view_appear.original_image.unsqueeze(0).cuda()
             gt_image_features=gaussians.app_encoder(normalize_vgg(gt_image))
             gt_image_features=gt_image_features.relu3_1
             rendered_feature = render(view, gaussians, pipe=pipeline, bg_color=background, kernel_size=dataset.kernel_size, subpixel_offset=subpixel_offset)["render"] 
@@ -301,7 +324,7 @@ if __name__ == "__main__":
     args = parser.parse_args(sys.argv[1:])
     print("Rendering " + args.model_path)
     lp_=lp.extract(args)
-    lp_.eval=args.eval_
+    # lp_.eval=args.eval_
     safe_state(args.quiet)
     lp_.kernel_size=args.kernel_size_
     lp_.resolution=2
