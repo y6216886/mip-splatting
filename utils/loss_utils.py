@@ -8,7 +8,7 @@
 #
 # For inquiries contact  george.drettakis@inria.fr
 #
-
+import math
 import torch
 import torch.nn.functional as F
 from torch.autograd import Variable
@@ -91,10 +91,10 @@ def cal_mse_content_loss(x, y):
 
 
 def mask_regularize(mask, size_delta, digit_delta):
-        focus_epsilon = 0.02
+        focus_epsilon = 0.02 
 
         # # l2 regularize
-        loss_focus_size = torch.pow(mask, 2)
+        loss_focus_size = torch.square(mask)
         loss_focus_size = torch.mean(loss_focus_size) * size_delta
 
         loss_focus_digit = 1 / ((mask - 0.5)**2 + focus_epsilon)

@@ -12,7 +12,7 @@ meta_name="app-random-app-maskrcnn-tune"
 model_path=output/$dataset_name/wild/$meta_name
 echo $model_path
 # "./output", os.path.basename(args.source_path), "wild", args.exp_name
-command="CUDA_VISIBLE_DEVICES=2  python train-wildfeature.py -s /root/young/code/unconstrained-gs/data/brandenburg_gate -m /root/young/code/mip-splatting/output/brandenburggate --eval --load_allres --sample_more_highres --white_background --port 6220 --kernel_size 0.1 --model_path_args  $model_path --appearance --mask --masktype maskrcnn --encode_a_random"
+command="CUDA_VISIBLE_DEVICES=2  python train-wildfeature.py -s /root/young/code/unconstrained-gs/data/brandenburg_gate -m /root/young/code/mip-splatting/output/brandenburggate --eval --load_allres --sample_more_highres --white_background --port 6220 --kernel_size 0.1 --model_path_args_  $model_path --appearance --mask --masktype maskrcnn --encode_a_random"
 
 
 

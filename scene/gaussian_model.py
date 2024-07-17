@@ -240,7 +240,7 @@ class GaussianModel:
         self.max_radii2D = torch.zeros((self.get_xyz.shape[0]), device="cuda")
 
 
-    def training_setup_style_feature(self, training_args, app_encoder, args, photorealistic=False, config=None):
+    def training_setup_style_feature(self, training_args, app_encoder, args, config=None):
         app_channel_dim=32
         
 
@@ -289,19 +289,21 @@ class GaussianModel:
             
         ]
         if args.mask:
-            if args.masktype == "context":
+            # if args.masktype == "context":
                 from scene.lightweight_seg import Context_Guided_Network
                 self.implicit_mask = Context_Guided_Network(classes= 1, M= 2, N= 2, input_channel=3).cuda()
-                
-            elif args.masktype == "maskrcnn": 
+                weights_im,_=torch.load("/root/young/code/mip-splatting/output/ckpt/implicit_net30000.pth")
+                self.implicit_mask.load_state_dict(weights_im)
+                print("load implicit mask succesfullly")
+            # elif args.masktype == "maskrcnn": 
                 # from torchvision.models.segmentation import deeplabv3_resnet50 as deep_m
                 from torchvision.models.detection import maskrcnn_resnet50_fpn
                 # self.implicit_mask = Context_Guided_Network(classes= 1, M= 2, N= 2, input_channel=3)
-                self.implicit_mask=maskrcnn_resnet50_fpn(pretrained=True).cuda()
-                self.implicit_mask.eval()
-                for param in self.implicit_mask.parameters():##cnn after avgpool should train?
+                self.maskrcnn=maskrcnn_resnet50_fpn(pretrained=True).cuda()
+                self.maskrcnn.eval()
+                for param in self.maskrcnn.parameters():##cnn after avgpool should train?
                                 param.requires_grad = False
-            l.append({'params': self.implicit_mask.parameters(), 'lr': 5e-4, "name": "segment_net"})
+                l.append({'params': self.implicit_mask.parameters(), 'lr': config.segnet_lr, "name": "segment_net"})
         self.optimizer = torch.optim.Adam(l, eps=1e-15)
         self.xyz_scheduler_args = get_expon_lr_func(lr_init=training_args.position_lr_init*self.spatial_lr_scale,
                                                     lr_final=training_args.position_lr_final*self.spatial_lr_scale,

@@ -19,6 +19,7 @@ WARNED = False
 def loadCam(args, id, cam_info, resolution_scale):
     orig_w, orig_h = cam_info.image.size
     # breakpoint()
+    intrinsic = torch.zeros(size=(3, 3), dtype=torch.float32,device="cuda")
     if args.resolution in [1, 2, 4, 8, 16, 32, 64]:
         resolution = round(orig_w/(resolution_scale * args.resolution)), round(orig_h/(resolution_scale * args.resolution))
         ##guassian-w
