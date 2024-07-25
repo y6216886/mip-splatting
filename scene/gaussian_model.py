@@ -284,16 +284,29 @@ class GaussianModel:
             {'params': self.feature_linear.parameters(), 'lr': 5e-4, "name": "feature_linear"},
             {'params': self.decoder.parameters(), 'lr': 5e-4, "name": "decoder"},
             {'params': self.style_transfer.parameters(), 'lr': 5e-4, "name": "style_transfer"},
-            {'params': self.app_encoder.parameters(), 'lr': 5e-4, "name": "app_encoder"},
+            {'params': self.app_encoder.mask_decoder.parameters(), 'lr': 5e-4, "name": "app_encoder"},
             {'params': self.decoder_style.parameters(), 'lr': 5e-4, "name": "decoder_style"}
+            # {'params': self.decoder_style.parameters(), 'lr': 5e-4, "name": "decoder_style"}
             
         ]
+        # breakpoint()
         if args.mask:
-            # if args.masktype == "context":
-                from scene.lightweight_seg import Context_Guided_Network
-                self.implicit_mask = Context_Guided_Network(classes= 1, M= 2, N= 2, input_channel=3).cuda()
-                weights_im,_=torch.load("/root/young/code/mip-splatting/output/ckpt/implicit_net30000.pth")
-                self.implicit_mask.load_state_dict(weights_im)
+                if args.masktype == "context":
+                    from scene.lightweight_seg import Context_Guided_Network
+                    self.implicit_mask = Context_Guided_Network(classes= 1, M= 2, N= 2, input_channel=3).cuda()
+                    weights_im,_=torch.load("/root/young/code/mip-splatting/output/ckpt/implicit_net30000.pth")
+                    self.implicit_mask.load_state_dict(weights_im)
+                elif args.masktype == "segformer": 
+                    from scene.seg_former import Segformer
+                    self.implicit_mask = Segformer(
+                            dims = (32, 64, 160, 256),      # dimensions of each stage
+                            heads = (1, 2, 5, 8),           # heads of each stage
+                            ff_expansion = (8, 8, 4, 4),    # feedforward expansion factor of each stage
+                            reduction_ratio = (8, 4, 2, 1), # reduction ratio of each stage for efficient attention
+                            num_layers = 2,                 # num layers of each stage
+                            decoder_dim = 256,              # decoder dimension
+                            num_classes = 1  
+                        ).cuda()
                 print("load implicit mask succesfullly")
             # elif args.masktype == "maskrcnn": 
                 # from torchvision.models.segmentation import deeplabv3_resnet50 as deep_m

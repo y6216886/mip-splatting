@@ -100,12 +100,12 @@ def training():
                 embedding_a_list[id]=gt_image_features.relu3_1
     print("saving are done")
     gaussians.compute_3D_filter(cameras=trainCameras)
-
+    print("Optimizing " + args.model_path_args)
     viewpoint_stack = None
     ema_loss_for_log = 0.0
     progress_bar = tqdm(range(first_iter, opt.iterations), desc="Training progress")
     first_iter += 1
-    Annealing = ExponentialAnnealingWeight(max = config.maskrs_max, min = config.maskrs_min, k = config.maskrs_k)
+    # Annealing = ExponentialAnnealingWeight(max = config.maskrs_max, min = config.maskrs_min, k = config.maskrs_k)
 
     for iteration in range(first_iter, opt.iterations + 1):        
         if network_gui.conn == None:
@@ -153,7 +153,10 @@ def training():
         render_pkg = render(viewpoint_cam, gaussians, pipe, background, kernel_size=dataset.kernel_size, subpixel_offset=subpixel_offset)
         rendered_feature, viewspace_point_tensor, visibility_filter, radii = render_pkg["render"], render_pkg["viewspace_points"], render_pkg["visibility_filter"], render_pkg["radii"]
         id=viewpoint_cam.uid
-        gt_image_features_=embedding_a_list[id]
+        # gt_image_features_=embedding_a_list[id]
+        gt_image = viewpoint_cam.original_image.cuda().unsqueeze(0)
+        gt_image_output=gaussians.app_encoder(normalize_vgg(gt_image))
+        gt_image_features_=gt_image_output.relu3_1
         gt_image_features=gt_image_features_.detach()
         tranfered_features = gaussians.style_transfer(
                 rendered_feature.unsqueeze(0), #.detach(), # point cloud features [N, C]
@@ -161,7 +164,7 @@ def training():
             )
         image = gaussians.decoder(tranfered_features)
         # Loss
-        gt_image = viewpoint_cam.original_image.cuda()
+        
         loss_dict={}
         loss=0
         if dataset.resample_gt_image:
@@ -169,26 +172,31 @@ def training():
         # sample gt_image with subpixel offset
         if args.mask:
             # if args.masktype=="context" and iteration>config.mask_iteration: 
-            if iteration>config.mask_iteration: 
-                pred_mask=gaussians.implicit_mask(gt_image.unsqueeze(0))
-                loss_reg1, loss_reg2 = mask_regularize(pred_mask,config.maskrs_max,config.maskrd)#Annealing.getWeight(iteration), config.maskrd) ##avoid masking everything
-                loss+=loss_reg1+loss_reg2
+            # if iteration>config.mask_iteration: 
+                pred_mask_im=gt_image_output.mask
+                pred_mask_im=torch.nn.functional.interpolate(pred_mask_im,size=(image.shape[-2:]))
+                # pred_mask_im=gaussians.implicit_mask(gt_image.unsqueeze(0))
+                # loss_reg1, loss_reg2 = mask_regularize(pred_mask,config.maskrs_max,config.maskrd)#Annealing.getWeight(iteration), config.maskrd) ##avoid masking everything
+                loss_reg1=(torch.square(pred_mask_im)).mean()*config.maskrs_max
+                loss+=loss_reg1
                 loss_dict["loss_reg1"]=loss_reg1.item()
-                loss_dict["loss_reg2"]=loss_reg2.item()
+                # loss_dict["loss_reg2"]=loss_reg2.item()
             # elif args.masktype=="maskrcnn":
-            else:
-                with torch.no_grad(): 
-                    gt_image=gt_image.unsqueeze(0)
-                    prediction=gaussians.maskrcnn(gt_image)
-                    mask = prediction[0]['masks']  #[1:2,...]
-                    labels=prediction[0]['labels']
-                    idx=torch.where(labels==1)
-                    mask=mask[idx]
-                    if mask.shape[0]==0:
-                        pred_mask=torch.zeros_like(gt_image)[:,:1,...]
-                    else:pred_mask, _ = torch.max(mask, dim=0, keepdim=True)
-            image_=image*(1-pred_mask)
-            gt_image_=gt_image*(1-pred_mask)
+            # else:
+                # with torch.no_grad(): 
+                #     gt_image=gt_image.unsqueeze(0)
+                #     prediction=gaussians.maskrcnn(gt_image)
+                #     mask = prediction[0]['masks']  #[1:2,...]
+                #     labels=prediction[0]['labels']
+                #     idx=torch.where(labels==1)
+                #     mask=mask[idx]
+                #     if mask.shape[0]==0:
+                #         pred_mask_maskrcnn=torch.zeros_like(gt_image)[:,:1,...]
+                #     else:pred_mask_maskrcnn, _ = torch.max(mask, dim=0, keepdim=True)
+                # pred_mask=pred_mask_maskrcnn+pred_mask_im
+                pred_mask=pred_mask_im
+                image_=image*(1-pred_mask)
+                gt_image_=gt_image*(1-pred_mask)
         else:
             image_=image
             gt_image_=gt_image
@@ -443,7 +451,7 @@ if __name__ == "__main__":
                 'values': [3000]
                 },
             'maskrs_max':{
-                'values': [0.1,0.15,1,0.01]
+                'values': [1,0.5,0.01,0.1,0.001]
                 },
             'maskrs_min':{
                 'values': [1e-3]
@@ -457,7 +465,7 @@ if __name__ == "__main__":
                 'values': [0]
                 },
             'mask_iteration':{
-                'values': [2500,5000,7500,10000]
+                'values': [1]#2500,5000,7500,10000]
             },
             # 'prune_only_interval':{
             #     'values': [3000,1000]
@@ -500,7 +508,7 @@ if __name__ == "__main__":
         
         # All done
         args.model_path_args=args.model_path_args+"_"+str(sweep_id)
-        print("Optimizing " + args.model_path_args)
+
         if os.path.exists(os.path.join(args.model_path_args, "pred")) and args.exp_name!="default":
             print("Model path already exists, exiting")
             exit(1)
