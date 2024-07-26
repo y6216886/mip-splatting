@@ -8,7 +8,7 @@
 #
 # For inquiries contact  george.drettakis@inria.fr
 #
-
+                
 import torch
 import numpy as np
 from utils.general_utils import inverse_sigmoid, get_expon_lr_func, build_rotation
@@ -284,7 +284,6 @@ class GaussianModel:
             {'params': self.feature_linear.parameters(), 'lr': 5e-4, "name": "feature_linear"},
             {'params': self.decoder.parameters(), 'lr': 5e-4, "name": "decoder"},
             {'params': self.style_transfer.parameters(), 'lr': 5e-4, "name": "style_transfer"},
-            {'params': self.app_encoder.mask_decoder.parameters(), 'lr': 5e-4, "name": "app_encoder"},
             {'params': self.decoder_style.parameters(), 'lr': 5e-4, "name": "decoder_style"}
             # {'params': self.decoder_style.parameters(), 'lr': 5e-4, "name": "decoder_style"}
             
@@ -296,6 +295,10 @@ class GaussianModel:
                     self.implicit_mask = Context_Guided_Network(classes= 1, M= 2, N= 2, input_channel=3).cuda()
                     weights_im,_=torch.load("/root/young/code/mip-splatting/output/ckpt/implicit_net30000.pth")
                     self.implicit_mask.load_state_dict(weights_im)
+                elif args.masktype == "resnet18":
+                    from scene.resnet_masknet import Unet_model
+                    self.implicit_mask = Unet_model().cuda()
+                    print("loading resnet")
                 elif args.masktype == "segformer": 
                     from scene.seg_former import Segformer
                     self.implicit_mask = Segformer(

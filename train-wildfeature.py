@@ -153,10 +153,10 @@ def training():
         render_pkg = render(viewpoint_cam, gaussians, pipe, background, kernel_size=dataset.kernel_size, subpixel_offset=subpixel_offset)
         rendered_feature, viewspace_point_tensor, visibility_filter, radii = render_pkg["render"], render_pkg["viewspace_points"], render_pkg["visibility_filter"], render_pkg["radii"]
         id=viewpoint_cam.uid
-        # gt_image_features_=embedding_a_list[id]
+        gt_image_features_=embedding_a_list[id]
         gt_image = viewpoint_cam.original_image.cuda().unsqueeze(0)
-        gt_image_output=gaussians.app_encoder(normalize_vgg(gt_image))
-        gt_image_features_=gt_image_output.relu3_1
+        # gt_image_output=gaussians.app_encoder(normalize_vgg(gt_image))
+        # gt_image_features_=gt_image_output.relu3_1
         gt_image_features=gt_image_features_.detach()
         tranfered_features = gaussians.style_transfer(
                 rendered_feature.unsqueeze(0), #.detach(), # point cloud features [N, C]
@@ -173,11 +173,10 @@ def training():
         if args.mask:
             # if args.masktype=="context" and iteration>config.mask_iteration: 
             # if iteration>config.mask_iteration: 
-                pred_mask_im=gt_image_output.mask
-                pred_mask_im=torch.nn.functional.interpolate(pred_mask_im,size=(image.shape[-2:]))
+                pred_mask=gaussians.implicit_mask(gt_image)
                 # pred_mask_im=gaussians.implicit_mask(gt_image.unsqueeze(0))
                 # loss_reg1, loss_reg2 = mask_regularize(pred_mask,config.maskrs_max,config.maskrd)#Annealing.getWeight(iteration), config.maskrd) ##avoid masking everything
-                loss_reg1=(torch.square(pred_mask_im)).mean()*config.maskrs_max
+                loss_reg1=(torch.square(pred_mask)).mean()*config.maskrs_max
                 loss+=loss_reg1
                 loss_dict["loss_reg1"]=loss_reg1.item()
                 # loss_dict["loss_reg2"]=loss_reg2.item()
@@ -194,7 +193,6 @@ def training():
                 #         pred_mask_maskrcnn=torch.zeros_like(gt_image)[:,:1,...]
                 #     else:pred_mask_maskrcnn, _ = torch.max(mask, dim=0, keepdim=True)
                 # pred_mask=pred_mask_maskrcnn+pred_mask_im
-                pred_mask=pred_mask_im
                 image_=image*(1-pred_mask)
                 gt_image_=gt_image*(1-pred_mask)
         else:
@@ -439,7 +437,7 @@ if __name__ == "__main__":
                 'values': [5e-4] #1e-5, 5e-5, 1e-4, 5e-4, 1e-3, 5e-3, 1e-2
                 },
             'segnet_lr':{
-                'values': [5e-4, 5e-5] 
+                'values': [5e-4] 
                 }, #1e-5, 5e-5, 1e-4, 5e-4, 1e-3, 5e-3, 1e-2
             'densify_until_iter':{
                 'values': [15000]
@@ -451,7 +449,7 @@ if __name__ == "__main__":
                 'values': [3000]
                 },
             'maskrs_max':{
-                'values': [1,0.5,0.01,0.1,0.001]
+                'values': [1,0.5,0.15,0.1]
                 },
             'maskrs_min':{
                 'values': [1e-3]
@@ -480,16 +478,16 @@ if __name__ == "__main__":
                 'values': [0.2]
                 },
             "apploss_random_ratio":{
-                'values': [0.1,1,0.01]
+                'values': [0.1,0.01]
             },
             "apploss_pair_ratio":{
-                'values': [0.5,0.1,1,0.01,10]
+                'values': [0.5,0.1,1,0.01]
             },
             "lambda_dssim":{
-                'values': [0.55,0.4,0.6,0.8,0.2]
+                'values': [0.5,0.6,0.7]
             },
             "kernel_size":{
-                "values":[0.01]
+                "values":[0.01,0.1]
             }
             }
             
