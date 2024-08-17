@@ -36,7 +36,7 @@ CAMERA_MODELS = {
 }
 CAMERA_MODEL_IDS = dict([(camera_model.model_id, camera_model)
                          for camera_model in CAMERA_MODELS])
-CAMERA_MODEL_NAMES = dict([(camera_model.model_name, camera_model)
+CAMERA_MODEL_NAMES = dict([(camera_model.model_name, camera_model)~
                            for camera_model in CAMERA_MODELS])
 
 

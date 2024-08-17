@@ -114,7 +114,7 @@ class Unet_model(nn.Module):
                 OneConv(backbone_channels[-2],backbone_channels[-2]),
                 nn.ConvTranspose2d(backbone_channels[-2], backbone_channels[-3], kernel_size=2, stride=2),
                 OneConv(backbone_channels[-3],backbone_channels[-3]),
-                nn.ConvTranspose2d(backbone_channels[-3], backbone_channels[-4], kernel_size=2, stride=2),
+                nn.ConvTranspose2d(backbone_channels[-3], 1, kernel_size=2, stride=2),
                 # OneConv(backbone_channels[-4],backbone_channels[-4]),
                 # nn.Conv2d(backbone_channels[-4], 1, kernel_size=1),
                 nn.Sigmoid()
