@@ -255,7 +255,10 @@ class GaussianModel:
         _vgg_features = torch.randn((self.get_xyz.shape[0], 32), device="cuda").requires_grad_(True)
         self._vgg_features = nn.Parameter(_vgg_features)
         self.feature_linear = LinearLayer(inChanel=32, out_dim=app_channel_dim, feape=0).cuda()
-        self.decoder=NeuralRenderer(feat_nc=app_channel_dim, out_dim=3).cuda() 
+        # self.decoder=NeuralRenderer(feat_nc=app_channel_dim, out_dim=3).cuda() 
+        from scene.hat.model_hat import make_model
+        # breakpoint()
+        self.decoder=make_model(1).cuda() 
         self.decoder_style=decoder3(feat_nc=app_channel_dim, out_dim=3).cuda() 
         # if decoder_path:
         #     print('Init decoder from {}'.format(decoder_path))

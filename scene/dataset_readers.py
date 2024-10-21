@@ -147,7 +147,7 @@ def readColmapSceneInfo(path, images, eval, llffhold=8):
     reading_dir = "images" if images == None else images
     cam_infos_unsorted = readColmapCameras(cam_extrinsics=cam_extrinsics, cam_intrinsics=cam_intrinsics, images_folder=os.path.join(path, reading_dir))
     cam_infos = sorted(cam_infos_unsorted.copy(), key = lambda x : x.image_name)
-    df = pd.read_csv("/root/young/code/stylegs/data/split/brandenburg_gate.tsv", sep="\t")
+    df = pd.read_csv("/U_20240109_SZR_SMIL/yyf/young/code/stylegs/data/split/brandenburg_gate.tsv", sep="\t")
     train_file_name=df[df['split']=='train']['filename'].tolist()
     test_file_name=df[df['split']=='test']['filename'].tolist()
     if eval:
