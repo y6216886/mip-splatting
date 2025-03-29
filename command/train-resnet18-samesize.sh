@@ -1,14 +1,14 @@
-cd /root/young/code/mip-splatting/
+cd /U_20240109_SZR_SMIL/yyf/young/code/mip-splatting/
 
 dataset_name=brandenburg_gate #should work in path
-source_path=/root/young/code/unconstrained-gs/data/$dataset_name
+source_path=/U_20240109_SZR_SMIL/yyf/young/code/unconstrained-gs/data/$dataset_name
 
 
 # for i in {1,2,3,4,5,6,7,8,9,10}
 # do
-cd /root/young/code/mip-splatting/
+cd /U_20240109_SZR_SMIL/yyf/young/code/mip-splatting/
 # ####
-meta_name="mask_resnet18_samesize"
+meta_name="mask_resnet18_samesize-20251"
 # name=default
 
 
@@ -16,7 +16,7 @@ meta_name="mask_resnet18_samesize"
 model_path=output/$dataset_name/wild/$meta_name
 echo $model_path
 # "./output", os.path.basename(args.source_path), "wild", args.exp_name
-command="CUDA_VISIBLE_DEVICES=1  python train-wildfeature.py -s /root/young/code/unconstrained-gs/data/brandenburg_gate -m /root/young/code/mip-splatting/output/brandenburggate --eval --load_allres --sample_more_highres --white_background --port 6323 --model_path_args_  $model_path --appearance --mask --encode_a_random --wandb --masktype resnet18"
+command="CUDA_VISIBLE_DEVICES=0  python train-wildfeature.py -s /U_20240109_SZR_SMIL/yyf/young/code/unconstrained-gs/data/brandenburg_gate -m /U_20240109_SZR_SMIL/yyf/young/code/mip-splatting/output/brandenburggate --eval --load_allres --sample_more_highres --white_background --port 6323 --model_path_args_  $model_path --appearance --mask --encode_a_random --wandb --masktype resnet18"
 
 
 

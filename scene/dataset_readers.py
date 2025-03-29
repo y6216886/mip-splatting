@@ -67,6 +67,63 @@ def getNerfppNorm(cam_info):
 
     return {"translate": translate, "radius": radius}
 
+import cv2
+
+def readColmapCameras_fast3r(cam_extrinsics, cam_intrinsics, images_folder):
+    cam_infos = []
+    poses=[]
+    for idx, key in enumerate(cam_extrinsics):
+        sys.stdout.write('\r')
+        # the exact output you're looking for:
+        sys.stdout.write("Reading camera {}/{}".format(idx+1, len(cam_extrinsics)))
+        sys.stdout.flush()
+
+        extr = cam_extrinsics[key]
+        intr = cam_intrinsics[extr.camera_id]
+        height = intr.height
+        width = intr.width
+
+        uid = intr.id
+        R = np.transpose(qvec2rotmat(extr.qvec))
+        T = np.array(extr.tvec)
+        pose = np.block([[R, T.reshape(3, 1)], [np.zeros((1, 3)), 1]])
+        poses.append(pose)
+
+        image_path = os.path.join(images_folder, os.path.basename(extr.name))
+        image_name = os.path.basename(image_path).split(".")[0]
+        image = Image.open(image_path)
+
+        if intr.model=="SIMPLE_PINHOLE":
+            focal_length_x = intr.params[0]
+            FovY = focal2fov(focal_length_x, height)
+            FovX = focal2fov(focal_length_x, width)
+        elif intr.model=="PINHOLE":
+            focal_length_x = intr.params[0]
+            focal_length_y = intr.params[1]
+            FovY = focal2fov(focal_length_y, height)
+            FovX = focal2fov(focal_length_x, width)
+        elif intr.model=="SIMPLE_RADIAL":
+            f, cx, cy, r = intr.params
+            FovY = focal2fov(f, height)
+            FovX = focal2fov(f, width)
+            prcppoint = np.array([cx / width, cy / height])
+            # undistortion
+            image_cv = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
+            K = np.array([[f, 0, cx], [0, f, cy], [0, 0, 1]])
+            D = np.array([r, 0, 0, 0])  # Only radial distortion
+            image_undistorted = cv2.undistort(image_cv, K, D, None)
+            image_undistorted = cv2.cvtColor(image_undistorted, cv2.COLOR_BGR2RGB)
+            image = Image.fromarray(image_undistorted)
+        else:
+            assert False, "Colmap camera model not handled: only undistorted datasets (PINHOLE or SIMPLE_PINHOLE cameras) supported!"
+
+        cam_info = CameraInfo(uid=uid, R=R, T=T, FovY=FovY, FovX=FovX, image=image,
+                              image_path=image_path, image_name=image_name, width=width, height=height)
+        cam_infos.append(cam_info)
+    sys.stdout.write('\n')
+    return cam_infos, poses
+
+
 def readColmapCameras(cam_extrinsics, cam_intrinsics, images_folder):
     cam_infos = []
     for idx, key in enumerate(cam_extrinsics):
@@ -147,7 +204,7 @@ def readColmapSceneInfo(path, images, eval, llffhold=8):
     reading_dir = "images" if images == None else images
     cam_infos_unsorted = readColmapCameras(cam_extrinsics=cam_extrinsics, cam_intrinsics=cam_intrinsics, images_folder=os.path.join(path, reading_dir))
     cam_infos = sorted(cam_infos_unsorted.copy(), key = lambda x : x.image_name)
-    df = pd.read_csv("/root/young/code/stylegs/data/split/brandenburg_gate.tsv", sep="\t")
+    df = pd.read_csv("/U_20240109_SZR_SMIL/yyf/young/code/stylegs/data/split/brandenburg_gate.tsv", sep="\t")
     train_file_name=df[df['split']=='train']['filename'].tolist()
     test_file_name=df[df['split']=='test']['filename'].tolist()
     if eval:
@@ -182,6 +239,115 @@ def readColmapSceneInfo(path, images, eval, llffhold=8):
                            nerf_normalization=nerf_normalization,
                            ply_path=ply_path)
     return scene_info
+
+def readColmapSceneInfo_vgtt(path, images, eval, llffhold=8):
+    try:
+        cameras_extrinsic_file = os.path.join(path, "sparse/vgtt", "images.bin")
+        cameras_intrinsic_file = os.path.join(path, "sparse/vgtt", "cameras.bin")
+        cam_extrinsics = read_extrinsics_binary(cameras_extrinsic_file)
+        cam_intrinsics = read_intrinsics_binary(cameras_intrinsic_file)
+    except:
+        cameras_extrinsic_file = os.path.join(path, "sparse/vgtt", "images.txt")
+        cameras_intrinsic_file = os.path.join(path, "sparse/vgtt", "cameras.txt")
+        cam_extrinsics = read_extrinsics_text(cameras_extrinsic_file)
+        cam_intrinsics = read_intrinsics_text(cameras_intrinsic_file)
+
+    reading_dir = "images" if images == None else images
+    cam_infos_unsorted = readColmapCameras(cam_extrinsics=cam_extrinsics, cam_intrinsics=cam_intrinsics, images_folder=os.path.join(path, reading_dir))
+    cam_infos = sorted(cam_infos_unsorted.copy(), key = lambda x : x.image_name)
+    # breakpoint()
+    df = pd.read_csv("/U_20240109_SZR_SMIL/yyf/young/code/stylegs/data/split/brandenburg_gate.tsv", sep="\t")
+    train_file_name=df[df['split']=='train']['filename'].tolist()
+    test_file_name=df[df['split']=='test']['filename'].tolist()
+    if eval:
+        # train_cam_infos = [c for idx, c in enumerate(cam_infos) if idx % llffhold != 0]
+        # test_cam_infos = [c for idx, c in enumerate(cam_infos) if idx % llffhold == 0]
+        train_cam_infos = [c for idx, c in enumerate(cam_infos) if c.image_name+'.jpg' in train_file_name]
+        test_cam_infos = [c for idx, c in enumerate(cam_infos) if c.image_name+'.jpg' in test_file_name]
+    else:
+        train_cam_infos = cam_infos
+        test_cam_infos = []
+
+    nerf_normalization = getNerfppNorm(train_cam_infos)
+
+    ply_path = os.path.join(path, "sparse/vgtt/points3D.ply")
+    bin_path = os.path.join(path, "sparse/vgtt/points3D.bin")
+    txt_path = os.path.join(path, "sparse/vgtt/points3D.txt")
+    if not os.path.exists(ply_path):
+        print("Converting point3d.bin to .ply, will happen only the first time you open the scene.")
+        try:
+            xyz, rgb, _ = read_points3D_binary(bin_path)
+        except:
+            xyz, rgb, _ = read_points3D_text(txt_path)
+        storePly(ply_path, xyz, rgb)
+    try:
+        pcd = fetchPly(ply_path)
+    except:
+        pcd = None
+
+    scene_info = SceneInfo(point_cloud=pcd,
+                           train_cameras=train_cam_infos,
+                           test_cameras=test_cam_infos,
+                           nerf_normalization=nerf_normalization,
+                           ply_path=ply_path)
+    return scene_info
+
+
+# def readColmapSceneInfo_fast3r(path, images, eval, llffhold=8):
+
+#     # if eval:
+#     #     cameras_extrinsic_file = os.path.join(path, f"sparse/1", "images.txt")
+#     #     cameras_intrinsic_file = os.path.join(path, f"sparse/1", "cameras.txt")
+#     # else:
+#     cameras_extrinsic_file = os.path.join(path, f"sparse/0", "images.txt")
+#     cameras_intrinsic_file = os.path.join(path, f"sparse/0", "cameras.txt")
+
+#     cam_extrinsics = read_extrinsics_text(cameras_extrinsic_file)
+#     cam_intrinsics = read_intrinsics_text(cameras_intrinsic_file)
+#     reading_dir = "images" if images == None else images
+
+#     cam_infos_unsorted, poses = readColmapCameras_fast3r(cam_extrinsics=cam_extrinsics, cam_intrinsics=cam_intrinsics, images_folder=os.path.join(path, reading_dir))
+#     sorting_indices = sorted(range(len(cam_infos_unsorted)), key=lambda x: cam_infos_unsorted[x].image_name)
+#     cam_infos = [cam_infos_unsorted[i] for i in sorting_indices]
+#     sorted_poses = [poses[i] for i in sorting_indices]
+#     cam_infos = sorted(cam_infos_unsorted.copy(), key = lambda x : x.image_name)
+
+#     if eval:
+#         train_cam_infos = cam_infos
+#         test_cam_infos = cam_infos
+#         train_poses = sorted_poses
+#         test_poses = sorted_poses
+#     else:
+#         train_cam_infos = cam_infos
+#         test_cam_infos = []
+#         train_poses = sorted_poses
+#         test_poses = []
+
+#     nerf_normalization = getNerfppNorm(train_cam_infos)
+
+#     ply_path = os.path.join(path, f"sparse/0/points3D.ply")
+#     bin_path = os.path.join(path, f"sparse/0/points3D.bin")
+#     txt_path = os.path.join(path, f"sparse/0/points3D.txt")
+#     if not os.path.exists(ply_path):
+#         print("Converting point3d.bin to .ply, will happen only the first time you open the scene.")
+#         try:
+#             xyz, rgb, _ = read_points3D_binary(bin_path)
+#         except:
+#             xyz, rgb, _ = read_points3D_text(txt_path)
+#         storePly(ply_path, xyz, rgb)
+#     try:
+#         pcd = fetchPly(ply_path)
+#     except:
+#         pcd = None
+
+#     scene_info = SceneInfo(point_cloud=pcd,
+#                            train_cameras=train_cam_infos,
+#                            test_cameras=test_cam_infos,
+#                            nerf_normalization=nerf_normalization,
+#                            ply_path=ply_path,
+#                            train_poses=train_poses,
+#                            test_poses=test_poses)
+#     return scene_info
 
 def readCamerasFromTransforms(path, transformsfile, white_background, extension=".png"):
     cam_infos = []
@@ -346,6 +512,7 @@ def readMultiScaleNerfSyntheticInfo(path, white_background, eval, load_allres=Fa
     return scene_info
 
 sceneLoadTypeCallbacks = {
+    "vgtt": readColmapSceneInfo_vgtt,
     "Colmap": readColmapSceneInfo,
     "Blender" : readNerfSyntheticInfo,
     "Multi-scale": readMultiScaleNerfSyntheticInfo,

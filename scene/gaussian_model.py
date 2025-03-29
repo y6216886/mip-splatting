@@ -293,7 +293,7 @@ class GaussianModel:
                 if args.masktype == "context":
                     from scene.lightweight_seg import Context_Guided_Network
                     self.implicit_mask = Context_Guided_Network(classes= 1, M= 2, N= 2, input_channel=3).cuda()
-                    weights_im,_=torch.load("/root/young/code/mip-splatting/output/ckpt/implicit_net30000.pth")
+                    weights_im,_=torch.load("/U_20240109_SZR_SMIL/yyf/young/code/mip-splatting/output/ckpt/implicit_net30000.pth")
                     self.implicit_mask.load_state_dict(weights_im)
                 elif args.masktype == "resnet18":
                     from scene.resnet_masknet import Unet_model

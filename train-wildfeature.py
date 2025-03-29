@@ -394,6 +394,8 @@ if __name__ == "__main__":
     parser.add_argument("--start_checkpoint", type=str, default = None)
     parser.add_argument('--masktype', type=str, default="context", #maskrcnn context
                         help='mode seeking')
+    ##add a gpu args to control which gpu to use
+    parser.add_argument('--gpu', type=int, default=1)
     parser.add_argument('--mask', action='store_true', default=False)
     parser.add_argument('--appearance', action='store_true', default=False)
     parser.add_argument("--model_path_args", type=str, default="output/test1")
@@ -403,7 +405,8 @@ if __name__ == "__main__":
     parser.add_argument("--iterations_", type=int, default=30000)
     args = parser.parse_args(sys.argv[1:])
     args.save_iterations.append(args.iterations)
-    
+    #use cuda_visible_devices to control which gpu to use
+    os.environ["CUDA_VISIBLE_DEVICES"] = str(args.gpu)
     print("Optimizing " + args.model_path)
     opt = op.extract(args)
     opt.iterations = args.iterations_
