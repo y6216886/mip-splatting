@@ -61,27 +61,48 @@ class GaussianModel:
         self.setup_functions()
 
     def capture(self):
-        return (
-            self.active_sh_degree,
-            self._xyz,
-            self._features_dc,
-            self._features_rest,
-            self._scaling,
-            self._rotation,
-            self._opacity,
-            self.max_radii2D,
-            self.xyz_gradient_accum,
-            self.denom,
-            self._vgg_features,
-            self.optimizer.state_dict(),
-            self.spatial_lr_scale,
-            self.style_transfer.state_dict(),
-            self.decoder.state_dict(),
-            self.implicit_mask.state_dict(),
-            self.filter_3D
-        )
-    
+        try:
+            return (
+                self.active_sh_degree,
+                self._xyz,
+                self._features_dc,
+                self._features_rest,
+                self._scaling,
+                self._rotation,
+                self._opacity,
+                self.max_radii2D,
+                self.xyz_gradient_accum,
+                self.denom,
+                self._vgg_features,
+                self.optimizer.state_dict(),
+                self.spatial_lr_scale,
+                self.style_transfer.state_dict(),
+                self.decoder.state_dict(),
+                self.implicit_mask.state_dict(),
+                self.filter_3D
+            )
+        except:
+            return (
+                self.active_sh_degree,
+                self._xyz,
+                self._features_dc,
+                self._features_rest,
+                self._scaling,
+                self._rotation,
+                self._opacity,
+                self.max_radii2D,
+                self.xyz_gradient_accum,
+                self.denom,
+                self._vgg_features,
+                self.optimizer.state_dict(),
+                self.spatial_lr_scale,
+                self.style_transfer.state_dict(),
+                self.decoder.state_dict(),
+                self.filter_3D
+            )
+            
     def restore(self, model_args, training_args, vgg_encoder, args):
+        
         self.training_setup_style_feature(training_args, vgg_encoder, args)
         (self.active_sh_degree, 
         self._xyz, 
@@ -108,7 +129,8 @@ class GaussianModel:
         # self.optimizer.load_state_dict(opt_dict)
         self.style_transfer.load_state_dict(style_transfer_state_dict),
         self.decoder.load_state_dict(decoder_state_dict),
-        self.implicit_mask.load_state_dict(implicit_mask_state_dict)
+        if args.mask:
+            self.implicit_mask.load_state_dict(implicit_mask_state_dict)
         
         
 
@@ -256,6 +278,9 @@ class GaussianModel:
         self._vgg_features = nn.Parameter(_vgg_features)
         self.feature_linear = LinearLayer(inChanel=32, out_dim=app_channel_dim, feape=0).cuda()
         self.decoder=NeuralRenderer(feat_nc=app_channel_dim, out_dim=3).cuda() 
+        # from scene.hat.model_hat import make_model
+        # breakpoint()
+        # self.decoder=make_model(1).cuda() 
         self.decoder_style=decoder3(feat_nc=app_channel_dim, out_dim=3).cuda() 
         # if decoder_path:
         #     print('Init decoder from {}'.format(decoder_path))

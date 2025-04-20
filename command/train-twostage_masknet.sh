@@ -1,5 +1,5 @@
 cd /root/young/code/mip-splatting/
-
+export WANDB_API_KEY='23509f25f38fd1de301b370ab89f8ea19ac2e2c7'
 dataset_name=brandenburg_gate #should work in path
 source_path=/root/young/code/unconstrained-gs/data/$dataset_name
 

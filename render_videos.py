@@ -70,6 +70,7 @@ def get_cameras_by_colmap_ids(image_names, camera_dict):
 def render_multiview_vedio(model_path, name, train_views, test_views, gaussians, pipeline, background,args,dataset):
     combine_list=train_views+test_views
     camera_dict = {camera.image_name: camera for camera in combine_list}
+    # breakpoint()
     if args.scene_name=="brandenburg":
         format_idx=11#4
         select_view_id=["95597682_5978972152", "90076548_4759730564"]
@@ -77,7 +78,7 @@ def render_multiview_vedio(model_path, name, train_views, test_views, gaussians,
         length_view=90*2
         appear_idxs=["95597682_5978972152"]#
         name="train"
-        #get train_views with colmap_id =2.0
+        # get train_views with colmap_id =2.0
         
         # view_appears=[train_views[i] for i in appear_idxs]
 
@@ -85,8 +86,14 @@ def render_multiview_vedio(model_path, name, train_views, test_views, gaussians,
         # name="test"
         # view_intrinsics=[test_views[i] for i in intrinsic_idxs]
         # views=[train_views[i] for i in select_view_id]
-        views = get_cameras_by_colmap_ids(select_view_id, camera_dict)
-        view_appears=get_cameras_by_colmap_ids(appear_idxs, camera_dict)
+        try:
+            views = get_cameras_by_colmap_ids(select_view_id, camera_dict)
+            view_appears=get_cameras_by_colmap_ids(appear_idxs, camera_dict)
+        except:
+            select_view_id=["11025595_6187208518", "15234350_309538824"]
+            appear_idxs=["11025595_6187208518"]
+            views = get_cameras_by_colmap_ids(select_view_id, camera_dict)
+            view_appears=get_cameras_by_colmap_ids(appear_idxs, camera_dict)
     elif args.scene_name=="sacre":
         format_idx=38 #
         select_view_id=[753,657,595,181,699,]#700
@@ -279,7 +286,7 @@ def render_sets(args, dataset : ModelParams, iteration : int, pipeline : Pipelin
         bg_color = [1,1,1] if dataset.white_background else [0, 0, 0]
         background = torch.tensor(bg_color, dtype=torch.float32, device="cuda")
 
-        
+        breakpoint()
         if args.render_multiview_vedio:
             render_multiview_vedio(dataset.model_path,"train", scene.getTrainCameras(),scene.getTestCameras(), gaussians, pipeline, background, args, dataset)
         if args.render_interpolate:
@@ -310,7 +317,7 @@ if __name__ == "__main__":
     parser.add_argument("--render_multiview_vedio", action="store_true",default=False)
     parser.add_argument('--masktype', type=str, default="maskrcnn", #maskrcnn context
                         help='mode seeking')
-    parser.add_argument('--mask', action='store_true', default=True)
+    parser.add_argument('--mask', action='store_true', default=False)
     parser.add_argument('--appearance', action='store_true', default=False)
     parser.add_argument("--model_path_args", type=str, default="output/test1")
     parser.add_argument('--encode_a_random', action='store_true', default=True)

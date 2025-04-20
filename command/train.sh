@@ -4,7 +4,7 @@
 # export CUDA_HOME=/usr/local/cuda-11.4/
 
 # export PATH=${CUDA_HOME}/bin${PATH:+:${PATH}}
-
+export WANDB_API_KEY='23509f25f38fd1de301b370ab89f8ea19ac2e2c7'
 
 TORCH_CUDA_ARCH_LIST="6.1;6.2;7.0;7.5;8.0;8.6" pip install submodules/feature-gaussian-rasterization
 TORCH_CUDA_ARCH_LIST="6.1;6.2;7.0;7.5;8.0;8.6" pip install submodules/simple-knn/

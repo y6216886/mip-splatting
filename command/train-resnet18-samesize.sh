@@ -8,9 +8,9 @@ source_path=/U_20240109_SZR_SMIL/yyf/young/code/unconstrained-gs/data/$dataset_n
 # do
 cd /U_20240109_SZR_SMIL/yyf/young/code/mip-splatting/
 # ####
-meta_name="mask_resnet18_samesize-20251"
+meta_name="vgtt1"
 # name=default
-
+export WANDB_API_KEY='23509f25f38fd1de301b370ab89f8ea19ac2e2c7'
 
 
 model_path=output/$dataset_name/wild/$meta_name

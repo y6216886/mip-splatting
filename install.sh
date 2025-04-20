@@ -8,6 +8,10 @@
 
 # pip install submodules/diff-gaussian-rasterization
 # pip install submodules/simple-knn/
+export TORCH_CUDA_ARCH_LIST="8.0"
+export CUDA_HOME=/usr/local/cuda-11.4
+
+export PATH=${CUDA_HOME}/bin${PATH:+:${PATH}}
 
 conda create -n mip-splatting python=3.10 -y
 conda activate mip-splatting

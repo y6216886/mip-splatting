@@ -36,7 +36,7 @@ try:
     TENSORBOARD_FOUND = True
 except ImportError:
     TENSORBOARD_FOUND = False
-
+os.environ["WANDB_API_KEY"]='23509f25f38fd1de301b370ab89f8ea19ac2e2c7'
 @torch.no_grad()
 def create_offset_gt(image, offset):
     height, width = image.shape[1:]
@@ -59,8 +59,9 @@ def training():
     args.model_path_args=args.model_path_args_+"_"+str(run.name)
     dataset, opt, pipe, testing_iterations, saving_iterations, checkpoint_iterations, checkpoint, debug_from=opt_g
     dataset.kernel_size=config.kernel_size
+    opt.densify_until_iter=config.densify_until_iter
     first_iter = 0
-    scale=2
+    scale=1
     tb_writer = prepare_output_and_logger(dataset)
     gaussians = GaussianModel(dataset.sh_degree)
     scene = Scene(dataset, gaussians, resolution_scales=[scale])
@@ -92,12 +93,15 @@ def training():
     # training_report(tb_writer, 0, 0, 0, 0, 9, [0], scene, render, (pipe, background, dataset.kernel_size), scale, networks=networks)
 
     # for viewpoint_cam in viewpoint_stack:
-    for viewpoint_cam in tqdm(viewpoint_stack, desc="Processing viewpoint_stack"):
-                id=viewpoint_cam.uid
-                print("uid",id)
-                gt_image = viewpoint_cam.original_image.unsqueeze(0).cuda()
-                gt_image_features=gaussians.app_encoder(normalize_vgg(gt_image))
-                embedding_a_list[id]=gt_image_features.relu3_1
+    with torch.no_grad():
+        for viewpoint_cam in tqdm(viewpoint_stack, desc="Processing viewpoint_stack"):
+                    id=viewpoint_cam.uid
+                    print("uid",id)
+                    # embedding_a_list[id]=torch.randn(1,256,64,64).cuda()
+                    # print("for debugging!!! wrong app feature")
+                    gt_image = viewpoint_cam.original_image.unsqueeze(0).cuda()
+                    gt_image_features=gaussians.app_encoder(normalize_vgg(gt_image))
+                    embedding_a_list[id]=gt_image_features.relu3_1
     print("saving are done")
     gaussians.compute_3D_filter(cameras=trainCameras)
     print("Optimizing " + args.model_path_args)
@@ -108,20 +112,20 @@ def training():
     # Annealing = ExponentialAnnealingWeight(max = config.maskrs_max, min = config.maskrs_min, k = config.maskrs_k)
 
     for iteration in range(first_iter, opt.iterations + 1):        
-        if network_gui.conn == None:
-            network_gui.try_connect()
-        while network_gui.conn != None:
-            try:
-                net_image_bytes = None
-                custom_cam, do_training, pipe.convert_SHs_python, pipe.compute_cov3D_python, keep_alive, scaling_modifer = network_gui.receive()
-                if custom_cam != None:
-                    net_image = render(custom_cam, gaussians, pipe, background, scaling_modifer)["render"]
-                    net_image_bytes = memoryview((torch.clamp(net_image, min=0, max=1.0) * 255).byte().permute(1, 2, 0).contiguous().cpu().numpy())
-                network_gui.send(net_image_bytes, dataset.source_path)
-                if do_training and ((iteration < int(opt.iterations)) or not keep_alive):
-                    break
-            except Exception as e:
-                network_gui.conn = None
+        # if network_gui.conn == None:
+        #     network_gui.try_connect()
+        # while network_gui.conn != None:
+        #     try:
+        #         net_image_bytes = None
+        #         custom_cam, do_training, pipe.convert_SHs_python, pipe.compute_cov3D_python, keep_alive, scaling_modifer = network_gui.receive()
+        #         if custom_cam != None:
+        #             net_image = render(custom_cam, gaussians, pipe, background, scaling_modifer)["render"]
+        #             net_image_bytes = memoryview((torch.clamp(net_image, min=0, max=1.0) * 255).byte().permute(1, 2, 0).contiguous().cpu().numpy())
+        #         network_gui.send(net_image_bytes, dataset.source_path)
+        #         if do_training and ((iteration < int(opt.iterations)) or not keep_alive):
+        #             break
+        #     except Exception as e:
+        #         network_gui.conn = None
 
         iter_start.record()
 
@@ -162,6 +166,7 @@ def training():
                 rendered_feature.unsqueeze(0), #.detach(), # point cloud features [N, C]
                 gt_image_features, 
             )
+        # breakpoint()
         image = gaussians.decoder(tranfered_features)
         # Loss
         
@@ -395,7 +400,7 @@ if __name__ == "__main__":
     parser.add_argument('--masktype', type=str, default="context", #maskrcnn context
                         help='mode seeking')
     ##add a gpu args to control which gpu to use
-    parser.add_argument('--gpu', type=int, default=1)
+    parser.add_argument('--gpu', type=int, default=0)
     parser.add_argument('--mask', action='store_true', default=False)
     parser.add_argument('--appearance', action='store_true', default=False)
     parser.add_argument("--model_path_args", type=str, default="output/test1")
@@ -414,7 +419,7 @@ if __name__ == "__main__":
     safe_state(args.quiet)
 
     # Start GUI server, configure and run training
-    network_gui.init(args.ip, args.port)
+    # network_gui.init(args.ip, args.port)
     torch.autograd.set_detect_anomaly(args.detect_anomaly)
     
     
@@ -443,7 +448,7 @@ if __name__ == "__main__":
                 'values': [5e-4] 
                 }, #1e-5, 5e-5, 1e-4, 5e-4, 1e-3, 5e-3, 1e-2
             'densify_until_iter':{
-                'values': [15000]
+                'values': [0]
                 },
             'densify_from_iter':{
                 'values': [3000]
@@ -452,7 +457,7 @@ if __name__ == "__main__":
                 'values': [3000]
                 },
             'maskrs_max':{
-                'values': [1,0.5,0.15,0.1]
+                'values': [1]#[1,0.5,0.15,0.1]
                 },
             'maskrs_min':{
                 'values': [1e-3]
@@ -496,7 +501,7 @@ if __name__ == "__main__":
             
         sweep_config['parameters'] = parameters_dict
 
-
+        
         global opt_g
         opt_g = (lp.extract(args), opt, pp.extract(args), args.test_iterations, args.save_iterations, args.checkpoint_iterations, args.start_checkpoint, args.debug_from)
         sweep_id = wandb.sweep(sweep_config, project="gaussian-mip")

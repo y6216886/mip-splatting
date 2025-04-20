@@ -69,59 +69,59 @@ def getNerfppNorm(cam_info):
 
 import cv2
 
-def readColmapCameras_fast3r(cam_extrinsics, cam_intrinsics, images_folder):
-    cam_infos = []
-    poses=[]
-    for idx, key in enumerate(cam_extrinsics):
-        sys.stdout.write('\r')
-        # the exact output you're looking for:
-        sys.stdout.write("Reading camera {}/{}".format(idx+1, len(cam_extrinsics)))
-        sys.stdout.flush()
+# def readColmapCameras_fast3r(cam_extrinsics, cam_intrinsics, images_folder):
+#     cam_infos = []
+#     poses=[]
+#     for idx, key in enumerate(cam_extrinsics):
+#         sys.stdout.write('\r')
+#         # the exact output you're looking for:
+#         sys.stdout.write("Reading camera {}/{}".format(idx+1, len(cam_extrinsics)))
+#         sys.stdout.flush()
 
-        extr = cam_extrinsics[key]
-        intr = cam_intrinsics[extr.camera_id]
-        height = intr.height
-        width = intr.width
+#         extr = cam_extrinsics[key]
+#         intr = cam_intrinsics[extr.camera_id]
+#         height = intr.height
+#         width = intr.width
 
-        uid = intr.id
-        R = np.transpose(qvec2rotmat(extr.qvec))
-        T = np.array(extr.tvec)
-        pose = np.block([[R, T.reshape(3, 1)], [np.zeros((1, 3)), 1]])
-        poses.append(pose)
+#         uid = intr.id
+#         R = np.transpose(qvec2rotmat(extr.qvec))
+#         T = np.array(extr.tvec)
+#         pose = np.block([[R, T.reshape(3, 1)], [np.zeros((1, 3)), 1]])
+#         poses.append(pose)
 
-        image_path = os.path.join(images_folder, os.path.basename(extr.name))
-        image_name = os.path.basename(image_path).split(".")[0]
-        image = Image.open(image_path)
+#         image_path = os.path.join(images_folder, os.path.basename(extr.name))
+#         image_name = os.path.basename(image_path).split(".")[0]
+#         image = Image.open(image_path)
 
-        if intr.model=="SIMPLE_PINHOLE":
-            focal_length_x = intr.params[0]
-            FovY = focal2fov(focal_length_x, height)
-            FovX = focal2fov(focal_length_x, width)
-        elif intr.model=="PINHOLE":
-            focal_length_x = intr.params[0]
-            focal_length_y = intr.params[1]
-            FovY = focal2fov(focal_length_y, height)
-            FovX = focal2fov(focal_length_x, width)
-        elif intr.model=="SIMPLE_RADIAL":
-            f, cx, cy, r = intr.params
-            FovY = focal2fov(f, height)
-            FovX = focal2fov(f, width)
-            prcppoint = np.array([cx / width, cy / height])
-            # undistortion
-            image_cv = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
-            K = np.array([[f, 0, cx], [0, f, cy], [0, 0, 1]])
-            D = np.array([r, 0, 0, 0])  # Only radial distortion
-            image_undistorted = cv2.undistort(image_cv, K, D, None)
-            image_undistorted = cv2.cvtColor(image_undistorted, cv2.COLOR_BGR2RGB)
-            image = Image.fromarray(image_undistorted)
-        else:
-            assert False, "Colmap camera model not handled: only undistorted datasets (PINHOLE or SIMPLE_PINHOLE cameras) supported!"
+#         if intr.model=="SIMPLE_PINHOLE":
+#             focal_length_x = intr.params[0]
+#             FovY = focal2fov(focal_length_x, height)
+#             FovX = focal2fov(focal_length_x, width)
+#         elif intr.model=="PINHOLE":
+#             focal_length_x = intr.params[0]
+#             focal_length_y = intr.params[1]
+#             FovY = focal2fov(focal_length_y, height)
+#             FovX = focal2fov(focal_length_x, width)
+#         elif intr.model=="SIMPLE_RADIAL":
+#             f, cx, cy, r = intr.params
+#             FovY = focal2fov(f, height)
+#             FovX = focal2fov(f, width)
+#             prcppoint = np.array([cx / width, cy / height])
+#             # undistortion
+#             image_cv = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
+#             K = np.array([[f, 0, cx], [0, f, cy], [0, 0, 1]])
+#             D = np.array([r, 0, 0, 0])  # Only radial distortion
+#             image_undistorted = cv2.undistort(image_cv, K, D, None)
+#             image_undistorted = cv2.cvtColor(image_undistorted, cv2.COLOR_BGR2RGB)
+#             image = Image.fromarray(image_undistorted)
+#         else:
+#             assert False, "Colmap camera model not handled: only undistorted datasets (PINHOLE or SIMPLE_PINHOLE cameras) supported!"
 
-        cam_info = CameraInfo(uid=uid, R=R, T=T, FovY=FovY, FovX=FovX, image=image,
-                              image_path=image_path, image_name=image_name, width=width, height=height)
-        cam_infos.append(cam_info)
-    sys.stdout.write('\n')
-    return cam_infos, poses
+#         cam_info = CameraInfo(uid=uid, R=R, T=T, FovY=FovY, FovX=FovX, image=image,
+#                               image_path=image_path, image_name=image_name, width=width, height=height)
+#         cam_infos.append(cam_info)
+#     sys.stdout.write('\n')
+#     return cam_infos, poses
 
 
 def readColmapCameras(cam_extrinsics, cam_intrinsics, images_folder):
@@ -136,7 +136,51 @@ def readColmapCameras(cam_extrinsics, cam_intrinsics, images_folder):
         intr = cam_intrinsics[extr.camera_id]
         height = intr.height
         width = intr.width
+        uid = intr.id
+        R = np.transpose(qvec2rotmat(extr.qvec))
+        T = np.array(extr.tvec)
 
+        if intr.model=="SIMPLE_PINHOLE" :
+            focal_length_x = intr.params[0]
+            FovY = focal2fov(focal_length_x, height)
+            FovX = focal2fov(focal_length_x, width)
+        elif intr.model=="PINHOLE" or intr.model=='SIMPLE_RADIAL':
+            focal_length_x = intr.params[0]
+            focal_length_y = intr.params[1]
+            FovY = focal2fov(focal_length_y, height)
+            FovX = focal2fov(focal_length_x, width)
+        else:
+            assert False, "Colmap camera model not handled: only undistorted datasets (PINHOLE or SIMPLE_PINHOLE cameras) supported!"
+
+        image_path = os.path.join(images_folder, os.path.basename(extr.name))
+        image_name = os.path.basename(image_path).split(".")[0]
+        image = Image.open(image_path)
+        # get rid of too many opened files
+        image = copy.deepcopy(image)
+        cam_info = CameraInfo(uid=uid, R=R, T=T, FovY=FovY, FovX=FovX, image=image,
+                              image_path=image_path, image_name=image_name, width=width, height=height)
+        cam_infos.append(cam_info)
+    sys.stdout.write('\n')
+    return cam_infos
+
+
+def readColmapCameras_vgtt(cam_extrinsics, cam_intrinsics, images_folder, imgsize=None):
+    cam_infos = []
+    for idx, key in enumerate(cam_extrinsics):
+        sys.stdout.write('\r')
+        # the exact output you're looking for:
+        sys.stdout.write("Reading camera {}/{}".format(idx+1, len(cam_extrinsics)))
+        sys.stdout.flush()
+
+        extr = cam_extrinsics[key]
+        intr = cam_intrinsics[extr.camera_id]
+        height = intr.height
+        width = intr.width
+        if imgsize is not None:
+            
+            new_width = imgsize
+            height = round(height * (new_width / width) / 14) * 14
+            width = new_width
         uid = intr.id
         R = np.transpose(qvec2rotmat(extr.qvec))
         T = np.array(extr.tvec)
@@ -163,6 +207,7 @@ def readColmapCameras(cam_extrinsics, cam_intrinsics, images_folder):
         cam_infos.append(cam_info)
     sys.stdout.write('\n')
     return cam_infos
+
 
 def fetchPly(path):
     plydata = PlyData.read(path)
@@ -241,38 +286,49 @@ def readColmapSceneInfo(path, images, eval, llffhold=8):
     return scene_info
 
 def readColmapSceneInfo_vgtt(path, images, eval, llffhold=8):
+    # subpath="sparse_200_518"
+    print("note the subpath!!")
+    imgsize=518
+    subpath="vgtt"
     try:
-        cameras_extrinsic_file = os.path.join(path, "sparse/vgtt", "images.bin")
-        cameras_intrinsic_file = os.path.join(path, "sparse/vgtt", "cameras.bin")
+        cameras_extrinsic_file = os.path.join(path, f"sparse/{subpath}", "images.bin")
+        cameras_intrinsic_file = os.path.join(path, f"sparse/{subpath}", "cameras.bin")
         cam_extrinsics = read_extrinsics_binary(cameras_extrinsic_file)
         cam_intrinsics = read_intrinsics_binary(cameras_intrinsic_file)
     except:
-        cameras_extrinsic_file = os.path.join(path, "sparse/vgtt", "images.txt")
-        cameras_intrinsic_file = os.path.join(path, "sparse/vgtt", "cameras.txt")
+        cameras_extrinsic_file = os.path.join(path, f"sparse/{subpath}", "images.txt")
+        cameras_intrinsic_file = os.path.join(path, f"sparse/{subpath}", "cameras.txt")
         cam_extrinsics = read_extrinsics_text(cameras_extrinsic_file)
         cam_intrinsics = read_intrinsics_text(cameras_intrinsic_file)
 
     reading_dir = "images" if images == None else images
-    cam_infos_unsorted = readColmapCameras(cam_extrinsics=cam_extrinsics, cam_intrinsics=cam_intrinsics, images_folder=os.path.join(path, reading_dir))
+    cam_infos_unsorted = readColmapCameras_vgtt(cam_extrinsics=cam_extrinsics, cam_intrinsics=cam_intrinsics, images_folder=os.path.join(path, reading_dir), imgsize=imgsize)
     cam_infos = sorted(cam_infos_unsorted.copy(), key = lambda x : x.image_name)
     # breakpoint()
-    df = pd.read_csv("/U_20240109_SZR_SMIL/yyf/young/code/stylegs/data/split/brandenburg_gate.tsv", sep="\t")
-    train_file_name=df[df['split']=='train']['filename'].tolist()
-    test_file_name=df[df['split']=='test']['filename'].tolist()
-    if eval:
-        # train_cam_infos = [c for idx, c in enumerate(cam_infos) if idx % llffhold != 0]
-        # test_cam_infos = [c for idx, c in enumerate(cam_infos) if idx % llffhold == 0]
-        train_cam_infos = [c for idx, c in enumerate(cam_infos) if c.image_name+'.jpg' in train_file_name]
-        test_cam_infos = [c for idx, c in enumerate(cam_infos) if c.image_name+'.jpg' in test_file_name]
+    if os.path.basename(path) in ["brandenburg_gate"]:
+        df = pd.read_csv("/U_20240109_SZR_SMIL/yyf/young/code/stylegs/data/split/brandenburg_gate.tsv", sep="\t")
+        train_file_name=df[df['split']=='train']['filename'].tolist()
+        test_file_name=df[df['split']=='test']['filename'].tolist()
+        # train_file_name=train_file_name[:100]
+        # test_file_name=test_file_name[:2]
+        if eval:
+            # train_cam_infos = [c for idx, c in enumerate(cam_infos) if idx % llffhold != 0]
+            # test_cam_infos = [c for idx, c in enumerate(cam_infos) if idx % llffhold == 0]
+            train_cam_infos = [c for idx, c in enumerate(cam_infos) if c.image_name+'.jpg' in train_file_name]
+            test_cam_infos = [c for idx, c in enumerate(cam_infos) if c.image_name+'.jpg' in test_file_name]
+        else:
+            train_cam_infos = cam_infos
+            test_cam_infos = []
     else:
-        train_cam_infos = cam_infos
-        test_cam_infos = []
+        train_cam_infos = [c for idx, c in enumerate(cam_infos)][:-3]
+        test_cam_infos = [c for idx, c in enumerate(cam_infos)][-3:]
+    #get the intersection of the 
 
     nerf_normalization = getNerfppNorm(train_cam_infos)
 
-    ply_path = os.path.join(path, "sparse/vgtt/points3D.ply")
-    bin_path = os.path.join(path, "sparse/vgtt/points3D.bin")
-    txt_path = os.path.join(path, "sparse/vgtt/points3D.txt")
+    ply_path = os.path.join(path, f"sparse/{subpath}/points3D.ply")
+    bin_path = os.path.join(path, f"sparse/{subpath}/points3D.bin")
+    txt_path = os.path.join(path, f"sparse/{subpath}/points3D.txt")
     if not os.path.exists(ply_path):
         print("Converting point3d.bin to .ply, will happen only the first time you open the scene.")
         try:
